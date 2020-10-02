@@ -1,0 +1,8 @@
+{
+  "ERROR_LOG_DIR":  "/tmp/",
+  "DB_USER": "postgres",
+  "DB_PASS": "example",
+  "DB_PORT": 5432,
+  "DB_HOSTNAME": "imagedb",
+  "DB_NAME": "imagedb"
+}

@@ -1,0 +1,43 @@
+version: "2.4"
+
+networks:
+  traefik_web:
+    external:
+      name: traefik_web
+  db-net:
+    external:
+      name: image-db-net
+
+volumes:
+  # Webroot
+  pipelinegui-webroot-bind:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${WEBROOT?You need to specify env WEBROOT, e.g. WEBROOT=/home/anders/projekt/pipelinegui/webserver}
+      o: bind
+
+services:
+  pipelineguiweb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pipelinegui
+    ports:
+      - 8096:8080
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_web"
+      - "traefik.port=8096"
+      - "traefik.http.routers.pipelineguiweb.rule=Host(`${TRAEFIK_FRONTEND_URL?You need to specify env TRAEFIK_FRONTEND_URL, e.g. TRAEFIK_FRONTEND_URL=name.my-domain.com}`)"
+      - "traefik.http.routers.pipelineguiweb.entrypoints=websecure"
+      - "traefik.http.routers.pipelineguiweb.tls.certresolver=myresolver"
+      # - traefik.frontend.auth.basic=${TRAEFIK_BASIC_AUTH? You need to specify env TRAEFIK_BASIC_AUTH, e.g. TRAEFIK_BASIC_AUTH=username:$blablsbskjfhbsjhslkfsjlkdslkjf/kljsd}
+
+
+    networks:
+      - traefik_web
+      - db-net
+    volumes:
+      - pipelinegui-webroot-bind:/app
