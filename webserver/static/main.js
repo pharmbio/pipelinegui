@@ -528,7 +528,7 @@ function getSizeSelection() {
   return size;
 }
 
-function initPlatedesignUI() {
+function initPipelineGUI() {
 
   let size = getSizeSelection();
   let table = createEmptyTable(size);

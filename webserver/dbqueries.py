@@ -2,12 +2,12 @@
 import logging
 import json
 import psycopg2
-import settings as labdesign_settings
+import settings as pipelinegui_settings
 
 def get_connection():
-    return psycopg2.connect(host=labdesign_settings.DB_HOSTNAME,
-                                 database=labdesign_settings.DB_NAME,
-                                 user=labdesign_settings.DB_USER, password=labdesign_settings.DB_PASS)
+    return psycopg2.connect(host=pipelinegui_settings.DB_HOSTNAME,
+                                 database=pipelinegui_settings.DB_NAME,
+                                 user=pipelinegui_settings.DB_USER, password=pipelinegui_settings.DB_PASS)
 
 def list_protocols():
 

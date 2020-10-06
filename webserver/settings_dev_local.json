@@ -2,6 +2,6 @@
   "DB_USER": "postgres",
   "DB_PASS": "example",
   "DB_PORT": 5432,
-  "DB_HOSTNAME": "labdesigndb",
-  "DB_NAME": "labdesign"
+  "DB_HOSTNAME": "imagedb",
+  "DB_NAME": "lmagedb"
 }

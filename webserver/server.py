@@ -10,7 +10,7 @@ import tornado.web
 
 from handlers.query_handlers import ListProtocolsQueryHandler, SaveProtocolQueryHandler, DeleteProtocolQueryHandler
 
-import settings as labdesign_settings
+import settings as pipelinegui_settings
 
 SETTINGS = {
     'debug': True,
