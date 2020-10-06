@@ -3,5 +3,6 @@
   "DB_PASS": "example",
   "DB_PORT": 5432,
   "DB_HOSTNAME": "imagedb",
-  "DB_NAME": "lmagedb"
+  "DB_NAME": "lmagedb",
+  "DB_ADMIN_URL": "https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public"
 }

@@ -530,24 +530,6 @@ function getSizeSelection() {
 
 function initPipelineGUI() {
 
-  let size = getSizeSelection();
-  let table = createEmptyTable(size);
-  let container = document.getElementById('table-div');
-  container.innerHTML = "";
-  container.appendChild(table);
-
   console.log("Hello");
-
-  let plate = new Plate(size);
-  console.log("plate", plate);
-
-
-  plate.wellOrder.forEach(function (wellName, index) {
-
-      //console.log("wellName", wellName);
-
-      let cell = document.getElementById(wellName);
-      cell.innerHTML = "" + index;
-    });
   
 }

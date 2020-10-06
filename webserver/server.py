@@ -39,7 +39,7 @@ class IndexTemplateHandler(tornado.web.RequestHandler): #pylint: disable=abstrac
     """
     def get(self):
 
-        self.render('index.html')
+        self.render('index.html', admin_db_url=pipelinegui_settings.DB_ADMIN_URL)
 
 
 ROUTES = [
