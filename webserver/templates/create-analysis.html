@@ -136,17 +136,17 @@
   <div class="d-flex" id="wrapper">
 
 
-     <!-- Sidebar -->
-  <div class="bg-light border-right" id="sidebar-wrapper";>
-    <div class="sidebar-heading">Pipelinegui</div>
+    <!-- Sidebar -->
+    <div class="bg-light border-right" id="sidebar-wrapper" ;>
+      <div class="sidebar-heading">Pipelinegui</div>
 
-    <div class="sidebar-heading" >
-      <!-- <div class="list-group list-group-flush">-->
-      <ul id='result-list'></ul>
+      <div class="sidebar-heading">
+        <!-- <div class="list-group list-group-flush">-->
+        <ul id='result-list'></ul>
 
+      </div>
     </div>
-  </div>
-  <!-- /#sidebar-wrapper -->
+    <!-- /#sidebar-wrapper -->
 
     <!-- Page Content -->
     <div id="page-content-wrapper">
@@ -160,13 +160,13 @@
 
 
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
+            <li class="nav-item">
               <a class="nav-link" href="index.html">Dashboard</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="run-analysis.html">Run-Analysis</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
               <a class="nav-link" href="create-analysis.html">Create-Analysis</a>
             </li>
           </ul>
@@ -195,8 +195,7 @@
                 Admin
               </a>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownAdminer">
-                <a class="dropdown-item"
-                  href="{{ admin_db_url }}">Adminer</a>
+                <a class="dropdown-item" href="adminer.html">Adminer</a>
               </div>
             </li>
 
@@ -222,21 +221,55 @@
 
 
       <!-- Main form -->
-      <form id='main-form' onsubmit='return false;'>
+      <form id='main-form'> <!-- onsubmit='return false;' -->
 
         <!-- Toolbar -->
         <div id="toolbar-div" class="container-fluid mt-2 mb-2">
 
           <div class="input-group align-bottom">
 
-            <!-- Design name selector -->
+            <!-- Analysis name selector -->
             <div class="input-group-prepend">
-              <label class="input-group-text" for="design-select">Design name:</label>
+              <label class="input-group-text" for="analysis_pipelines-select">Select analysis:</label>
             </div>
-            <select class="form-control" style="max-width: 300px;" id="design-select">
-              <option value="Test plate design 1">Test plate design 1</option>
-              <option value="Another plate design 1">Another plate design 1</option>
+            <select class="form-control" style="max-width: 300px;" id="analysis_pipelines-select">
             </select>
+
+          </div>
+
+        </div>
+        <!-- end Toolbar -->
+
+        <!--Analysis div -->
+        <div id="analysis-div" class="container-fluid flex-fill">
+
+          <div class="form-group">
+            <textarea name="analysis_pipeline-meta" class="form-control analysistextarea" rows=10 id="analysis_pipeline-meta">
+            </textarea>
+          </div>
+
+        </div>
+
+        <!-- Toolbar -->
+        <!--
+        <div id="toolbar-div" class="container-fluid mt-2 mb-2">
+
+          <div class="input-group align-bottom">
+
+            <div class="input-group-prepend">
+              <label class="input-group-text" for="analysis_pipeline-name">Analysis name:</label>
+            </div>
+            <input type="text" class="form-control" style="max-width: 300px;" id="analysis_pipeline-name" value="">
+
+          </div>
+        </div>
+        -->
+        <!-- end Toolbar -->
+
+        <!-- Toolbar -->
+        <div id="toolbar-div" class="container-fluid mt-2 mb-2">
+
+          <div class="input-group align-bottom">
 
             <!-- Verify button-->
             <!--
@@ -244,35 +277,19 @@
           -->
             <!-- Save buttons-->
             <button type="button" id="save-button" class="btn btn-info ml-2" data-toggle="modal"
-              data-target="#save-protocol-modal">Save</button>
+              data-target="#save-analysis_pipeline-modal">Save</button>
+
+            <!-- Save as button-->
+            <button type="button" id="save-as-button" class="btn btn-info ml-2" data-toggle="modal"
+              data-target="#save-analysis_pipeline-modal">Save as....</button>
 
             <!-- Delete button-->
             <button type="button" id="verify-button" class="btn btn-info ml-2" data-toggle="modal"
-              data-target="#delete-protocol-modal">Delete</button>
+              data-target="#delete-analysis_pipeline-modal">Delete</button>
+
 
           </div>
-
         </div>
-        <!-- end Toolbar -->
-
-        <!-- plate-acquisition table div-->
-        <div id="plate-acq-table-div" class="container-fluid flex-fill">
-        </div>
-        <!-- text div -->
-        <div id="Adminer-link-div" class="container-fluid flex-fill">
-           <a target="adminer" 
-              href="https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=plate_acquisition">View plate_acquisition in database</a>
-        </div>
-        <!-- end text div -->
-
-        <div id="jobs-table-div" class="container-fluid flex-fill">
-        </div>
-        <!-- text div -->
-        <div id="text-div" class="container-fluid flex-fill">
-          <pre>kubectl get jobs -n cpp</pre>   
-        </div>
-        <!-- end text div -->
-
 
 
 
@@ -307,49 +324,49 @@
 
 
   <!-- Modal dialog "Save ...." -->
-  <div class="modal" id="save-protocol-modal" tabindex="-1" role="dialog" aria-labelledby="save-protocolLabel"
+  <div class="modal" id="save-analysis_pipeline-modal" tabindex="-1" role="dialog" aria-labelledby="save-analysisPipelineLabel"
     aria-hidden="true">
     <div class="modal-dialog " role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="save-protocolLabel">Save protocol</h5>
+          <h5 class="modal-title" id="save-analysisPipelineLabel">Save analysis</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="save-protocol-name" class="col-form-label">Protocol Name:</label>
-            <input type="text" class="form-control" id="save-protocol-name">
+            <label for="save-analysis_pipeline-name" class="col-form-label">Analysis Name:</label>
+            <input type="text" class="form-control" id="save-analysis_pipeline-name">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="apiSaveProtocol()">Save</button>
+          <button type="button" class="btn btn-primary" onclick="apiSaveAnalysisPipeline()">Save</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="modal" id="delete-protocol-modal" tabindex="-1" role="dialog" aria-labelledby="delete-protocolLabel"
+  <div class="modal" id="delete-analysis_pipeline-modal" tabindex="-1" role="dialog" aria-labelledby="delete-analysisPipelineLabel"
     aria-hidden="true">
     <div class="modal-dialog " role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="delete-protocolLabel">Delete protocol</h5>
+          <h5 class="modal-title" id="delete-analysisPipelineLabel">Delete analysis</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="delete-protocol-name" class="col-form-label">Protocol to be deleted, Name:</label>
-            <input type="text" class="form-control" id="delete-protocol-name">
+            <label for="delete-analysis_pipeline-name" class="col-form-label">Protocol to be deleted, Name:</label>
+            <input type="text" class="form-control" id="delete-analysis_pipeline-name">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-danger" onclick="apiDeleteProtocol()">Delete</button>
+          <button type="button" class="btn btn-danger" onclick="apiDeleteAnalysisPipeline()">Delete</button>
         </div>
       </div>
     </div>
@@ -422,7 +439,7 @@
     window.onerror = displayModalJavaScriptError;
 
     // Setup UI
-    initIndexPage();
+    initCreateAnalysisPage();
 
     //$('#my-button').click(function() {
     //  SleepTime(2000);
@@ -451,8 +468,8 @@
       });
 
       // Attach event listeners
-      $("#plate-size-select").change(function () {
-        initPipelineGUI();
+      $("#analysis_pipelines-select").change(function () {
+        redrawSelectedAnalysisPipeline();
       });
 
     });

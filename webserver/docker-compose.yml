@@ -34,10 +34,12 @@ services:
       - "traefik.http.routers.pipelineguiweb.entrypoints=websecure"
       - "traefik.http.routers.pipelineguiweb.tls.certresolver=myresolver"
       # - traefik.frontend.auth.basic=${TRAEFIK_BASIC_AUTH? You need to specify env TRAEFIK_BASIC_AUTH, e.g. TRAEFIK_BASIC_AUTH=username:$blablsbskjfhbsjhslkfsjlkdslkjf/kljsd}
-
+  # env:
+  #    - KUBECONFIG=/kube/config.yaml
 
     networks:
       - traefik_web
       - db-net
     volumes:
       - pipelinegui-webroot-bind:/app
+      - ../kube_config/:/kube

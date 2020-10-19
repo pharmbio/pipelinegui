@@ -8,7 +8,7 @@ import logging
 import tornado
 import tornado.web
 
-from handlers.query_handlers import ListProtocolsQueryHandler, SaveProtocolQueryHandler, DeleteProtocolQueryHandler
+import handlers.query_handlers as query_handlers
 
 import settings as pipelinegui_settings
 
@@ -44,11 +44,14 @@ class IndexTemplateHandler(tornado.web.RequestHandler): #pylint: disable=abstrac
 
 ROUTES = [
           (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), 'static')}),
-          (r'/api/protocols/(?P<protocol>.+)', ListProtocolsQueryHandler),
-          (r'/api/protocol/save', SaveProtocolQueryHandler),
-          (r'/api/protocol/delete/(?P<protocol>.+)', DeleteProtocolQueryHandler),
-          (r'/index.html', DefaultTemplateHandler),
-          (r'/protocols.html', DefaultTemplateHandler),
+          (r'/api/list/plate_acquisition/(?P<limit>.+)/(?P<sortorder>.+)', query_handlers.ListPlateAcqHandler),
+          (r'/api/list/jobs', query_handlers.ListJobsHandler),
+          (r'/run-analysis.html', DefaultTemplateHandler),
+          (r'/create-analysis.html', DefaultTemplateHandler),
+          (r'/api/analysis-pipelines/save', query_handlers.SaveAnalysisPipelinesQueryHandler),
+          (r'/api/analysis-pipelines/delete/(?P<name>.+)', query_handlers.DeleteAnalysisPipelinesQueryHandler),
+          (r'/api/analysis-pipelines/(?P<name>.+)*', query_handlers.ListAnalysisPipelinesQueryHandler),
+          (r'/index.html', IndexTemplateHandler),
           (r'/', IndexTemplateHandler),
          ]
          

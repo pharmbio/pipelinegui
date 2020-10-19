@@ -15,6 +15,13 @@ ul li a {
     background: #ff0000;
 }
 
+.tableCell {
+    width: 100px;
+    height: 100px;
+    background: #ff0000;
+}
+
+
 .headerCell {
     color: lightgray;
     text-align: center;

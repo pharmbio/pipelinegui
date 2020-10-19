@@ -2,460 +2,21 @@
   Javascript version: ECMAScript 6 (Javascript 6)
  */
 
-function createEmptyTable(size) {
-  let rows;
-  let cols;
-  if(size == 96){
-    rows = 8;
-    cols = 12;
-  }else if( size == 384){
-    rows = 16;
-    cols = 24;
-  }
 
-  let table = document.createElement('table');
-  table.id = 'plateTable';
-  table.className = 'plateTable';
 
-  // First add header row
-  let headerRow = document.createElement('tr');
-  for (let col = 0; col < cols; col++) {
-    // If first col then add empty cell before (to match column headers)
-    if (col === 0) {
-      let empty_cell = document.createElement('td');
-      empty_cell.innerHTML = "";
-      empty_cell.className = 'headerCell';
-      headerRow.appendChild(empty_cell);
-    }
-    let row = 0;
-    let well_name = getWellName(row, col);
-    let header_cell = document.createElement('td');
-    header_cell.innerHTML = well_name.substring(1);
-    header_cell.className = 'headerCell';
-    headerRow.appendChild(header_cell);
-  }
-  table.appendChild(headerRow);
+function apiCreatePlateAcqTable() {
 
-  // Now add rows and columns
-  for (let row = 0; row < rows; row++) {
-    let rowElement = document.createElement('tr');
-    for (let col = 0; col < cols; col++) {
+  let limit = 1000;
+  let sortOrder = "ASCENDING"
 
-      let well_name = getWellName(row, col);
+  fetch('/api/list/plate_acquisition/' + limit + "/" + sortOrder)
 
-      // Add column header before first column cell
-      if (col === 0) {
-        let header_cell = document.createElement('td');
-        header_cell.innerHTML = well_name.charAt(0);
-        header_cell.className = 'headerCell';
-        rowElement.appendChild(header_cell);
-      }
-
-      let well_cell = document.createElement('td');
-      well_cell.id = well_name;
-      well_cell.className = 'wellCell';
-      rowElement.appendChild(well_cell);
-    }
-    table.appendChild(rowElement);
-  }
-
-  return table;
-}
-
-class WellOrder {
-
-  constructor(size, pattern){
-    this.wellOrder = new Array();
-    if(pattern === "SPIRAL"){
-      this.wellOrder = this.generateSpiralOrder(size, this.wellOrder);
-    }
-  }
-
-  getOrderArray(){
-    return this.wellOrder;
-  }
-
-  generateSpiralOrder(size, wellOrder){
-    let wells = Plate.createWellArray(size);
-    let counter = { "value": 0 };
-    this.floodFillRight(0, 0, wells, wellOrder, counter);
-    return wellOrder;
-  }
-
-  floodFillRight(pos_x, pos_y, plate, wellOrder, counter) {
-
-    if (this.isOutOfBounds(pos_x, pos_y, plate) || this.isDoneAlready(pos_x, pos_y, plate)) {
-      return;
-    }
-
-    plate[pos_x][pos_y] = counter.value; // mark the point so that I know if I passed through it. 
-    wellOrder.push("" + getWellName(pos_x, pos_y));
-    counter.value++;
-
-    this.floodFillUp(pos_x - 1, pos_y, plate, wellOrder, counter);
-    this.floodFillRight(pos_x, pos_y + 1, plate, wellOrder, counter);
-    this.floodFillDown(pos_x + 1, pos_y, plate, wellOrder, counter);
-    this.floodFillLeft(pos_x, pos_y - 1, plate, wellOrder, counter);
-
-    return;
-  }
-
-  floodFillUp(pos_x, pos_y, plate, wellOrder, counter) {
-
-    if (this.isOutOfBounds(pos_x, pos_y, plate) || this.isDoneAlready(pos_x, pos_y, plate)) {
-      return;
-    }
-
-    plate[pos_x][pos_y] = counter.value; // mark the point so that I know if I passed through it. 
-    wellOrder.push("" + getWellName(pos_x, pos_y));
-    counter.value++;
-
-    this.floodFillLeft(pos_x, pos_y - 1, plate, wellOrder, counter);
-    this.floodFillUp(pos_x - 1, pos_y, plate, wellOrder, counter);
-    this.floodFillRight(pos_x, pos_y + 1, plate, wellOrder, counter);
-    this.floodFillDown(pos_x + 1, pos_y, plate, wellOrder, counter);
-
-    return;
-  }
-
-  floodFillDown(pos_x, pos_y, plate, wellOrder, counter) {
-
-    if (this.isOutOfBounds(pos_x, pos_y, plate) || this.isDoneAlready(pos_x, pos_y, plate)) {
-      return;
-    }
-
-    plate[pos_x][pos_y] = counter.value; // mark the point so that I know if I passed through it. 
-    wellOrder.push("" + getWellName(pos_x, pos_y));
-    counter.value++;
-
-    this.floodFillRight(pos_x, pos_y + 1, plate, wellOrder, counter);
-    this.floodFillDown(pos_x + 1, pos_y, plate, wellOrder, counter);
-    this.floodFillLeft(pos_x, pos_y - 1, plate, wellOrder, counter);
-    this.floodFillUp(pos_x - 1, pos_y, plate, wellOrder, counter);
-
-    return;
-  }
-
-  floodFillLeft(pos_x, pos_y, plate, wellOrder, counter) {
-
-    if (this.isOutOfBounds(pos_x, pos_y, plate) || this.isDoneAlready(pos_x, pos_y, plate)) {
-      return;
-    }
-
-    plate[pos_x][pos_y] = counter.value; // mark the point so that I know if I passed through it. 
-    wellOrder.push("" + getWellName(pos_x, pos_y));
-    counter.value++;
-
-    this.floodFillDown(pos_x + 1, pos_y, plate, wellOrder, counter);
-    this.floodFillLeft(pos_x, pos_y - 1, plate, wellOrder, counter);
-    this.floodFillUp(pos_x - 1, pos_y, plate, wellOrder, counter);
-    this.floodFillRight(pos_x, pos_y + 1, plate, wellOrder, counter);
-
-    return;
-  }
-
-  isOutOfBounds(pos_x, pos_y, plate) {
-    // out of bounds
-    if (pos_x < 0 || pos_x >= plate.length) {
-      return true;
-    }
-    // out of bounds
-    if (pos_y < 0 || pos_y >= plate[pos_x].length) {
-      return true;
-    }
-    return false;
-  }
-
-  isDoneAlready(pos_x, pos_y, plate) {
-    // been here already
-    if (plate[pos_x][pos_y] != undefined) {
-      return true;
-    }
-    return false;
-  }
-}
-
-
-class Plate {
-  constructor(size) {
-    this.size = size;
-    this.wells = Plate.createWellArray(size);
-    this.wellOrder = new WellOrder(size, "SPIRAL").getOrderArray();
-  }
-
-  static createWellArray(size) {
-    let nRows;
-    let nCols;
-
-    if (size == 96) {
-      nRows = 8;
-      nCols = 12;
-    } else if (size == 384) {
-      nRows = 16;
-      nCols = 24;
-    } else {
-      throw "Not a valid plate size: " + size;
-    }
-
-    let wells = new Array(nRows)
-    for (let row = 0; row < nRows; row++) {
-      wells[row] = new Array(nCols);
-    }
-    return wells;
-  }
-
-}
-
-// 0,0 equals A1
-function getWellName(row, col) {
-  let rows = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"];
-  return rows[row] + (col + 1).toString().padStart(2, 0)
-}
-
-function getRowIndexFrowWellName(name) {
-  let ascVal = name.charCodeAt(0);
-  // A = char code 65
-  let rowIndex = ascVal - 64;
-  return rowIndex;
-}
-
-function getColIndexFrowWellName(name) {
-  let colIndex = parseInt(name.substr(1), 10);
-  return colIndex;
-}
-
-
-var _loaded_protocols = null;
-
-function setProtocols(protocols) {
-  _loaded_protocols = protocols;
-}
-
-function getProtocols() {
-  return _loaded_protocols;
-}
-
-class Protocols {
-  constructor(protocols_json) {
-    this.protocols = new Array();
-    for (let protocol_json of protocols_json) {
-      this.protocols.push(new Protocol(protocol_json));
-    }
-  }
-
-  getProtocolFromName(name) {
-    // Loop until name is fount, then return protocol-object
-    for (let protocol of this.protocols) {
-      console.log("name", name);
-      console.log("protocol.getName()", protocol.getName());
-      if (name === protocol.getName()) {
-        console.log("String match");
-        return protocol;
-      }
-    }
-  }
-
-  getArray() {
-    return this.protocols;
-  }
-
-}
-
-class Protocol {
-  constructor(jsondata) {
-    this.json = jsondata;
-  }
-
-  getName() {
-    return this.json.name;
-  }
-
-  getStepsAsText() {
-    let stepsText = "";
-    //return JSON.stringify(this.json.steps, undefined, 2);
-
-    stepsText += "[\n";
-    for (let step of this.json.steps) {
-      console.log("step", step);
-      stepsText += JSON.stringify(step) + ",\n";
-      //stepsText += step.toString() + "\n";
-    }
-    stepsText = stepsText.substring(0, stepsText.length - 2);
-    stepsText += "\n]";
-
-    return stepsText;
-  }
-
-}
-
-let protocol1_json = {
-  name: "Standard_1",
-  steps: [
-    { name: "wash", protocol: "wash-40uL" },
-    { name: "disp", protocol: "disp-40uL-mito" },
-    { name: "incu_co2", time: "20" },
-    { name: "wash", protocol: "wash-3x-70uL-dye" },
-    { name: "disp", protocol: "disp-70uL-PFE" },
-    { name: "incu_room", time: "20" },
-    { name: "wash", protocol: "wash-40uL" },
-    { name: "disp", protocol: "disp-70uL-triton" },
-    { name: "shake", time: "17" },
-    { name: "wash", protocol: "wash-40uL" },
-    { name: "disp", protocol: "disp-50uL-color-cocktail" },
-    { name: "incu_room", time: "20" },
-    { name: "wash", protocol: "wash-3x-80uL-dye" },
-    { name: "cool", time: "forever" }
-  ]
-};
-
-let protocol2_json = {
-  name: "Standard_2",
-  steps: [
-    { name: "wash", protocol: "wash-20uL" },
-    { name: "disp", protocol: "disp-20uL-mito" },
-    { name: "incu_co2", time: "20" },
-    { name: "wash", protocol: "wash-3x-70uL-dye" },
-    { name: "disp", protocol: "disp-70uL-PFE" },
-    { name: "incu_room", time: "20" },
-    { name: "wash", protocol: "wash-20uL" },
-    { name: "disp", protocol: "disp-70uL-triton" },
-    { name: "shake", time: "17" },
-    { name: "wash", protocol: "wash-20uL" },
-    { name: "disp", protocol: "disp-50uL-color-cocktail" },
-    { name: "incu_room", time: "20" },
-    { name: "wash", protocol: "wash-3x-80uL-dye" },
-    { name: "cool", time: "forever" }
-  ]
-};
-
-function updateProtocolSelect(selected = "") {
-
-  // This select is not available on all pages, return if not
-  let elemSelect = document.getElementById('protocol-select');
-  if (elemSelect == null) {
-    return;
-  }
-
-  // reset
-  elemSelect.options.length = 0;
-  elemSelect.options.selectedIndex = -1;
-
-  // Just loop all protocols
-  let protocols = getProtocols().getArray();
-  protocols.forEach(function (protocol, index) {
-    console.log("protocol", protocol)
-    elemSelect.options.add(new Option(protocol.getName()));
-    // Maybe select option
-    if (selected === protocol.getName()) {
-      elemSelect.options.selectedIndex = index;
-    }
-  });
-}
-
-function setProtocolSelection(protocol) {
-  let elemSelect = document.getElementById('protocol-select');
-  elemSelect.selectedIndex = getSelectIndexFromSelectValue(elemSelect, protocol);
-}
-
-function redrawSelectedProtocol() {
-  let elem = document.getElementById('protocol-select');
-  let protocolName = elem.options[elem.selectedIndex].value;
-  console.log("protocolName", protocolName);
-  console.log("protocols", getProtocols());
-  let protocol = getProtocols().getProtocolFromName(protocolName);
-  document.getElementById('plate-protocol-steps').value = protocol.getStepsAsText();
-
-  // Update save and save as, delete .. text fields
-  document.getElementById('save-protocol-name').value = protocolName;
-  document.getElementById('delete-protocol-name').value = protocolName;
-}
-
-function reloadProtocolsUI(selected = "") {
-  apiLoadProtocols(selected);
-}
-
-function initProtocolsUI() {
-  apiLoadProtocols();
-}
-
-function updateProtocolsUI(selected = "") {
-  updateProtocolSelect(selected);
-  redrawSelectedProtocol();
-}
-
-function apiLoadProtocols(selected = "") {
-
-  //var toSelect = selected;
-
-  fetch('/api/protocols/all')
-    .then(response => response.json())
-    .then(data => {
-
-      console.log('protocols data', data);
-
-      setProtocols(new Protocols(data.result));
-
-      console.log(getProtocols());
-
-      console.log("Protocols loaded");
-      updateProtocolsUI(selected);
-
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    })
-}
-
-function getProtocolStepsAsJson() {
-  text = document.getElementById('plate-protocol-steps').value;
-  lineArray = text.split("\n");
-  stepsArray = new Array();
-
-  try {
-    for (let line of lineArray) {
-      console.log(line);
-      if (line.length > 0) {
-        stepsArray.push(JSON.parse(line));
-      }
-    }
-    console.log("stepsArray", stepsArray);
-
-    return stepsArray
-
-  } catch (err) {
-    displayModalError(err);
-    return false;
-  }
-}
-
-function verifyProtocolStepsJson(displayOKResult) {
-  text = document.getElementById('plate-protocol-steps').value;
-  JSON.parse(text);
-  if (displayOKResult === true) {
-    showOKModal("JSON Verified OK");
-  }
-}
-
-function apiSaveProtocol() {
-  // verify
-  verifyProtocolStepsJson(false);
-
-  let newName = document.getElementById('save-protocol-name').value;
-
-  let formData = new FormData(document.getElementById('main-form'));
-  formData.append("new_name", newName);
-
-  fetch('/api/protocol/save', {
-    method: 'POST',
-    body: formData
-    })
     .then(function (response) {
       if (response.status === 200) {
         response.json().then(function (json) {
 
-          reloadProtocolsUI(newName);
-          $("#save-protocol-modal").modal('hide');
-          showOKModal("Protocol Saved");
+          console.log('result', json);
+          drawTable(json['result'], "plate-acq-table-div")
 
         });
       }
@@ -464,27 +25,25 @@ function apiSaveProtocol() {
           displayModalServerError(response.status, text);
         });
       }
-
     })
+
     .catch(function (error) {
       console.log(error);
       displayModalError(error);
     });
+
 }
 
-function apiDeleteProtocol() {
+function apiCreateJobsTable() {
 
-  let deleteName = document.getElementById('delete-protocol-name').value;
-  let deleteURL = "/api/protocol/delete/" + deleteName;
+  fetch('/api/list/jobs')
 
-  fetch(deleteURL)
     .then(function (response) {
       if (response.status === 200) {
         response.json().then(function (json) {
 
-          reloadProtocolsUI();
-          $("#delete-protocol-modal").modal('hide');
-          showOKModal("Protocol Deleted");
+          console.log('result', json);
+          drawTable(json['result'], "jobs-table-div")
 
         });
       }
@@ -493,12 +52,67 @@ function apiDeleteProtocol() {
           displayModalServerError(response.status, text);
         });
       }
-
     })
+
     .catch(function (error) {
-      console.log("err", error);
+      console.log(error);
       displayModalError(error);
     });
+
+}
+
+function removeChildren(domObject) {
+  while (domObject.firstChild) {
+    domObject.removeChild(domObject.firstChild);
+  }
+}
+
+function drawTable(rows, divname) {
+
+  console.log("rows", rows);
+  console.log("divname", divname);
+
+  let container = document.getElementById(divname);
+
+  // Create Table
+  let table = document.createElement('table');
+  table.id = divname + "-table";
+  table.className = 'table';
+
+  // First add header row
+  let headerRow = document.createElement('tr');
+
+  // First row in rows is header
+  let cols = rows[0];
+
+  for (let col = 0; col < cols.length; col++) {
+
+    let header_cell = document.createElement('td');
+    header_cell.innerHTML = cols[col];
+    //header_cell.className = 'headerCell';
+    headerRow.appendChild(header_cell);
+  }
+  table.appendChild(headerRow);
+
+  // Now add rows (start from 1 since 0 is headers)
+  for (let row = 1; row < rows.length; row++) {
+    let rowElement = document.createElement('tr');
+    for (let col = 0; col < cols.length; col++) {
+
+      let cell = document.createElement('td');
+      cell.innerHTML = rows[row][col];
+      //cell.className = 'tableCell';
+      rowElement.appendChild(cell);
+    }
+
+    table.appendChild(rowElement);
+  }
+
+  removeChildren(container);
+  container.append(table)
+
+  console.log("drawTable finished")
+
 }
 
 function displayModalServerError(status, text) {
@@ -522,14 +136,249 @@ function showOKModal(message, timeoutMs = 1000) {
   setTimeout(function () { $("#alert-modal").modal('hide'); }, timeoutMs);
 }
 
-function getSizeSelection() {
-  let elemSelect = document.getElementById('plate-size-select');
-  let size = elemSelect.options[elemSelect.selectedIndex].value;
-  return size;
+
+var _loaded_analysisPipelines = null;
+
+function setAnalysisPipelines(pipelines) {
+  _loaded_analysisPipelines = pipelines;
 }
 
-function initPipelineGUI() {
+function getAnalysisPipelines() {
+  return _loaded_analysisPipelines;
+}
 
-  console.log("Hello");
+function getAnalysisPipelineFromName(name){
+  // Loop until name is fount, then return protocol-object
+  for (let analysis_pipeline of _loaded_analysisPipelines) {
+    if (name === analysis_pipeline['name']) {
+      console.log("String match");
+      return analysis_pipeline;
+    }
+  }
+}
+
+function apiLoadAnalysisPipelines(selected = "") {
+
+  fetch('/api/analysis-pipelines/')
+    .then(response => response.json())
+    .then(data => {
+
+      console.log('protocols data', data);
+
+      setAnalysisPipelines(data.result);
+
+      console.log("AnalysisPipelines loaded");
+      updateAnalysisPipelinesUI(selected);
+
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    })
+}
+
+function apiLoadPlateAcqSelect(selected = "") {
+
+  let limit = 1000;
+  let sortOrder = "ASCENDING"
+
+  fetch('/api/list/plate_acquisition/' + limit + "/" + sortOrder)
+    .then(response => response.json())
+    .then(data => {
+
+      console.log('plate_acquisition data', data);
+
+      updatePlateAcqSelect(data.result, selected);
+
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    })
+}
+
+function updatePlateAcqSelect(plateAcqs, selected = "") {
+
+  // This select is not available on all pages, return if not
+  let elemSelect = document.getElementById('plate_acq-select');
+  if (elemSelect == null) {
+    return;
+  }
+
+  // reset
+  elemSelect.options.length = 0;
+  elemSelect.options.selectedIndex = -1;
+
+  // Just loop all elements
+  plateAcqs.forEach(function (plateAcq, index) {
+    console.log("plateAcq", plateAcq)
+    elemSelect.options.add(new Option(plateAcq[0]));
+    // Maybe select option
+    if (selected === plateAcq[0]) {
+      elemSelect.options.selectedIndex = index;
+    }
+  });
+}
+
+
+
+function updateAnalysisPipelinesUI(selected = "") {
+  updateAnalysisPipelinesSelect(selected);
+  redrawSelectedAnalysisPipeline();
+}
+
+function updateAnalysisPipelinesSelect(selected = "") {
+
+  // This select is not available on all pages, return if not
+  let elemSelect = document.getElementById('analysis_pipelines-select');
+  if (elemSelect == null) {
+    return;
+  }
+
+  // reset
+  elemSelect.options.length = 0;
+  elemSelect.options.selectedIndex = -1;
+
+  // Just loop all elements
+  let pipelines = getAnalysisPipelines();
+  pipelines.forEach(function (pipeline, index) {
+    console.log("pipeline", pipeline)
+    elemSelect.options.add(new Option(pipeline['name']));
+    // Maybe select option
+    if (selected === pipeline['name']) {
+      elemSelect.options.selectedIndex = index;
+    }
+  });
+}
+
+/*
+function setAnalysisPipelinesSelection(analysisPineline) {
+  let elemSelect = document.getElementById('analysis_pipelines-select);
+  elemSelect.selectedIndex = getSelectIndexFromSelectValue(elemSelect, protocol);
+}
+*/
+
+function redrawSelectedAnalysisPipeline() {
   
+  let elem = document.getElementById('analysis_pipelines-select');
+  let pipelineName = elem.options[elem.selectedIndex].value;
+  console.log("pipelineName", pipelineName);
+  let pipeline = getAnalysisPipelineFromName(pipelineName);
+
+  console.log("pipeline", pipeline);
+
+  // Update textfield
+  document.getElementById('analysis_pipeline-meta').value = JSON.stringify(pipeline['meta']);
+
+  // Update modal save and save as, delete .. text fields (if they are present)
+  if(document.getElementById('save-analysis_pipeline-name')){
+    document.getElementById('save-analysis_pipeline-name').value = pipelineName;
+  }
+  if(document.getElementById('delete-analysis_pipeline-name')){
+    document.getElementById('delete-analysis_pipeline-name').value = pipelineName;
+  }
+
 }
+
+function verifyJson(displayOKResult, ) {
+  text = document.getElementById('plate-protocol-steps').value;
+  JSON.parse(text);
+  if (displayOKResult === true) {
+    showOKModal("JSON Verified OK");
+  }
+}
+
+function reloadAnalysisPipelinesUI(selected = "") {
+  apiLoadAnalysisPipelines(selected);
+}
+
+function apiSaveAnalysisPipeline() {
+  // verify
+  //verifyProtocolStepsJson(false);
+
+  let name = document.getElementById('save-analysis_pipeline-name').value;
+
+  console.log("form element", document.getElementById('main-form'));
+
+  let formData = new FormData(document.getElementById('main-form'));
+
+  console.log("form data", formData);
+
+  formData.append("analysis_pipeline-name", name);
+
+  console.log("form data", formData);
+
+  fetch('/api/analysis-pipelines/save', {
+    method: 'POST',
+    body: formData
+    })
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+          reloadAnalysisPipelinesUI(name);
+          $("#save-analysis_pipeline-modal").modal('hide');
+          showOKModal("Analysis Saved");
+
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log(error);
+      displayModalError(error);
+    });
+}
+
+function apiDeleteAnalysisPipeline() {
+
+  let deleteName = document.getElementById('delete-analysis_pipeline-name').value;
+  let deleteURL = "/api/analysis-pipelines/delete/" + deleteName;
+
+  fetch(deleteURL)
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+          reloadAnalysisPipelinesUI();
+          $("#delete-analysis_pipeline-modal").modal('hide');
+          showOKModal("Analysis Deleted");
+
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log("err", error);
+      displayModalError(error);
+    });
+}
+
+
+function initIndexPage() {
+  console.log("Inside initIndexPage()");
+  apiCreatePlateAcqTable();
+  apiCreateJobsTable();
+}
+
+
+function initCreateAnalysisPage() {
+  console.log("Inside initCreateAnalysisPage()");
+  apiLoadAnalysisPipelines();
+}
+
+function initRunAnalysisPage() {
+  console.log("Inside initRunAnalysisPage()");
+  apiLoadPlateAcqSelect();
+  apiLoadAnalysisPipelines();
+}
+
+
