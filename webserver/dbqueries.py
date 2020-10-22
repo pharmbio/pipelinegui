@@ -122,6 +122,50 @@ def save_analysis_pipelines(name, data):
         if conn is not None:
             conn.close()
 
+def submit_analysis(plate_acquisition, analysis_pipeline_name):
+
+    logging.debug("save_analysis_pipelines")
+
+    conn = None
+    try:
+
+        conn = get_connection()
+
+        select_query = ("SELECT meta FROM analysis_pipelines WHERE name=%s")
+        logging.info("select_query" + str(select_query))
+        cursor0 = conn.cursor()
+        cursor0.execute(select_query, (analysis_pipeline_name,))
+        meta = cursor0.fetchone()[0]
+        cursor0.close()
+
+        # Build query
+        query = ("INSERT INTO image_analyses(plate_acquisition_id) "
+                 "VALUES (%s) RETURNING id")
+
+        logging.info("query" + str(query))
+
+        cursor = conn.cursor()
+        cursor.execute(query, (plate_acquisition,))
+        analysis_id = cursor.fetchone()[0]
+        cursor.close()
+
+        for sub_analysis in meta:
+            insert_sub_cursor = conn.cursor() # piro says https://stackoverflow.com/users/10138/piro
+            insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta) "
+                                "VALUES (%s,%s,%s)")
+            insert_sub_cursor.execute(insert_sub_query, (analysis_id, plate_acquisition, json.dumps(sub_analysis),))
+        
+        conn.commit()
+        
+        return "OK"
+
+    except (Exception, psycopg2.DatabaseError) as err:
+        logging.exception("Message")
+        raise err
+    finally:
+        if conn is not None:
+            conn.close()
+
 def delete_analysis_pipelines(name):
 
     logging.debug("delete_analysis_pipelines")

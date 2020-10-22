@@ -61,6 +61,26 @@ class DeleteAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: 
         logging.debug(result)
         self.finish({'result':result})
 
+class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+    """
+    The query handler handles form posts and returns list of results
+    """
+    def post(self):
+        """Handles POST requests.
+        """
+        
+        # log all input parameters
+        logging.debug("%r %s" % (self.request, self.request.body.decode()))
+
+        plate_aquisition = self.get_argument("plate_acq-input")
+        analysis_pipeline_name = self.get_argument("analysis_pipelines-select")
+        
+        #logging.debug("form_data:" + str(form_data))
+
+        results = dbqueries.submit_analysis(plate_aquisition, analysis_pipeline_name)
+        logging.debug(results)
+        self.finish({'results':results})
+
 
 class SaveAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
     """

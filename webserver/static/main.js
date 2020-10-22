@@ -266,7 +266,7 @@ function redrawSelectedAnalysisPipeline() {
   console.log("pipeline", pipeline);
 
   // Update textfield
-  document.getElementById('analysis_pipeline-meta').value = JSON.stringify(pipeline['meta']);
+  document.getElementById('analysis_pipeline-meta').value = JSON.stringify(pipeline['meta'], null, 2);
 
   // Update modal save and save as, delete .. text fields (if they are present)
   if(document.getElementById('save-analysis_pipeline-name')){
@@ -288,6 +288,39 @@ function verifyJson(displayOKResult, ) {
 
 function reloadAnalysisPipelinesUI(selected = "") {
   apiLoadAnalysisPipelines(selected);
+}
+
+function apiRunAnalysis() {
+
+
+  let formData = new FormData(document.getElementById('main-form'));
+
+  console.log("form data", formData);
+
+  fetch('/api/analysis-pipelines/run', {
+    method: 'POST',
+    body: formData
+    })
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+          $("#run-analysis-modal").modal('hide');
+          showOKModal("Analysis submitted OK");
+
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log(error);
+      displayModalError(error);
+    });
 }
 
 function apiSaveAnalysisPipeline() {

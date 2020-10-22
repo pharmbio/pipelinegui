@@ -250,21 +250,6 @@
 
         </div>
 
-        <!-- Toolbar -->
-        <!--
-        <div id="toolbar-div" class="container-fluid mt-2 mb-2">
-
-          <div class="input-group align-bottom">
-
-            <div class="input-group-prepend">
-              <label class="input-group-text" for="analysis_pipeline-name">Analysis name:</label>
-            </div>
-            <input type="text" class="form-control" style="max-width: 300px;" id="analysis_pipeline-name" value="">
-
-          </div>
-        </div>
-        -->
-        <!-- end Toolbar -->
 
         <!-- Toolbar -->
         <div id="toolbar-div" class="container-fluid mt-2 mb-2">
@@ -284,9 +269,10 @@
               data-target="#save-analysis_pipeline-modal">Save as....</button>
 
             <!-- Delete button-->
-            <button type="button" id="verify-button" class="btn btn-info ml-2" data-toggle="modal"
+            <button type="button" id="delete-button" class="btn btn-danger ml-2" data-toggle="modal"
               data-target="#delete-analysis_pipeline-modal">Delete</button>
-
+            <!-- Verify button-->
+            <a role="button" id="verify-button" target="verify-json" class="btn btn-info ml-2" href="https://jsonlint.com">Verify json</a>
 
           </div>
         </div>
@@ -442,7 +428,7 @@
     initCreateAnalysisPage();
 
     //$('#my-button').click(function() {
-    //  SleepTime(2000);
+    //  SleepTime(2000);modify li
     //})
 
     // jQuery init methods
@@ -470,6 +456,20 @@
       // Attach event listeners
       $("#analysis_pipelines-select").change(function () {
         redrawSelectedAnalysisPipeline();
+      });
+
+      $("#verify-button").click(function(){
+
+        let textarea = document.getElementById('analysis_pipeline-meta');
+        let text = textarea.value;
+
+        let href = "https://jsonlint.com/" + "?json=" + encodeURI(text);
+
+        let button = document.getElementById('verify-button');
+        button.setAttribute('href', href);
+        
+        // return true so click continues to the href
+        return true;
       });
 
     });

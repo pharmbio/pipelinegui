@@ -49,6 +49,7 @@ ROUTES = [
           (r'/run-analysis.html', DefaultTemplateHandler),
           (r'/create-analysis.html', DefaultTemplateHandler),
           (r'/api/analysis-pipelines/save', query_handlers.SaveAnalysisPipelinesQueryHandler),
+           (r'/api/analysis-pipelines/run', query_handlers.RunAnalysisQueryHandler),
           (r'/api/analysis-pipelines/delete/(?P<name>.+)', query_handlers.DeleteAnalysisPipelinesQueryHandler),
           (r'/api/analysis-pipelines/(?P<name>.+)*', query_handlers.ListAnalysisPipelinesQueryHandler),
           (r'/index.html', IndexTemplateHandler),

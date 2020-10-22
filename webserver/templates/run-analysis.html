@@ -229,12 +229,12 @@
 
         <div class="input-group align-bottom">
 
-          <!-- Plate aq selector -->
+          <!-- Plate aq input -->
           <div class="input-group-prepend">
             <label class="input-group-text" for="plate_acq-select">Select plate acquisition:</label>
           </div>
-          <select class="form-control" style="max-width: 300px;" id="plate_acq-select">
-          </select>
+          <input class="form-control" style="max-width: 245px;" name="plate_acq-input" id="plate_acq-input">
+        </input>
 
         </div>
 
@@ -250,7 +250,7 @@
             <div class="input-group-prepend">
               <label class="input-group-text" for="analysis_pipelines-select">Select analysis:</label>
             </div>
-            <select class="form-control" style="max-width: 300px;" id="analysis_pipelines-select">
+            <select name="analysis_pipelines-select" class="form-control" style="max-width: 300px;" id="analysis_pipelines-select">
             </select>
 
           </div>
@@ -262,7 +262,7 @@
         <div id="analysis-div" class="container-fluid flex-fill">
 
           <div class="form-group">
-            <textarea name="analysis_pipeline-meta" class="form-control analysistextarea" rows=10
+            <textarea readonly name="analysis_pipeline-meta" class="form-control analysistextarea" rows=10
               id="analysis_pipeline-meta">
             </textarea>
           </div>
@@ -329,7 +329,7 @@
           </button>
         </div>
         <div class="modal-body">
-          Are you sure you want to run .... on ..... :-)
+          Are you sure you want to run this analysis :-)
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
