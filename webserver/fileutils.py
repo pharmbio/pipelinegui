@@ -1,39 +1,40 @@
+import logging
 import os
+import pathlib
 
-def create_merged_filepath(outdir, paths, suffix='.png'):
+def is_debug():
+    """
+    Check if the users has the debug env.var. set
+    """
+    debug = False
+    if os.environ.get('DEBUG') and os.environ.get('DEBUG') == "True":
+        debug = True
 
-    # create a filename
-    for path in paths:
-      filename = "" + os.path.basename(path) + "-"
+    return debug
 
-    filename = filename + suffix
 
-    # create a subpath
-    # strip / from beginning if there is one since this should be a subpath, otherwise os.path.join will fail
-    subpath = os.path.dirname(paths[0]).strip('/')
+def list_pipelinefiles():
 
-    # strip / from original path - otherwise os.path.join will fail
-    merged_path = os.path.join(outdir, subpath)
+    return list_files("/cpp_work/pipelines/")
 
-    # add filename to path
-    merged_path = os.path.join(merged_path, filename)
+def list_files(input_path):
 
-    return merged_path
+    files = list(pathlib.Path(input_path).rglob("*.*"))
 
-def create_pngconverted_filepath(outdir, path, suffix='.png'):
+    #logging.debug("files:" + str(files))
 
-    # create a filename
-    filename = "" + os.path.basename(path)
-    filename = filename + suffix
+    # create a table of the files with only one column and one file per row (each row is represented as a list)
+    result_table = []
 
-    # create a subpath
-    # strip / from beginning if there is one since this should be a subpath, otherwise os.path.join will fail
-    subpath = os.path.dirname(path).strip('/')
+    # First add a header
+    result_table.append(["Filename"])
 
-    # strip / from original path - otherwise os.path.join will fail
-    converted_path = os.path.join(outdir, subpath)
+    # Then add the files
+    for file in files:
+        relative_file = file.relative_to(input_path)
+        result_table.append([str(relative_file)])
 
-    # add filename to path
-    converted_path = os.path.join(converted_path, filename)
+    #logging.debug("result_table:" + str(result_table))
 
-    return converted_path
+    return result_table
+

@@ -136,17 +136,17 @@
   <div class="d-flex" id="wrapper">
 
 
-     <!-- Sidebar -->
-  <div class="bg-light border-right" id="sidebar-wrapper";>
-    <div class="sidebar-heading">Pipelinegui</div>
+    <!-- Sidebar -->
+    <div class="bg-light border-right" id="sidebar-wrapper" ;>
+      <div class="sidebar-heading">Pipelinegui</div>
 
-    <div class="sidebar-heading" >
-      <!-- <div class="list-group list-group-flush">-->
-      <ul id='result-list'></ul>
+      <div class="sidebar-heading">
+        <!-- <div class="list-group list-group-flush">-->
+        <ul id='result-list'></ul>
 
+      </div>
     </div>
-  </div>
-  <!-- /#sidebar-wrapper -->
+    <!-- /#sidebar-wrapper -->
 
     <!-- Page Content -->
     <div id="page-content-wrapper">
@@ -195,8 +195,7 @@
                 Admin
               </a>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownAdminer">
-                <a class="dropdown-item"
-                  href="{{ admin_db_url }}">Adminer</a>
+                <a class="dropdown-item" href="{{ admin_db_url }}">Adminer</a>
               </div>
             </li>
 
@@ -224,54 +223,52 @@
       <!-- Main form -->
       <form id='main-form' onsubmit='return false;'>
 
-        <!-- Toolbar -->
-        <div id="toolbar-div" class="container-fluid mt-2 mb-2">
 
-          <div class="input-group align-bottom">
-
-            <!-- Design name selector -->
-            <div class="input-group-prepend">
-              <label class="input-group-text" for="design-select">Design name:</label>
-            </div>
-            <select class="form-control" style="max-width: 300px;" id="design-select">
-              <option value="Test plate design 1">Test plate design 1</option>
-              <option value="Another plate design 1">Another plate design 1</option>
-            </select>
-
-            <!-- Verify button-->
-            <!--
-          <button type="button" id="verify-button" class="btn btn-info ml-2" onclick="verifyProtocolStepsJson(true)">Verify</button>
-          -->
-            <!-- Save buttons-->
-            <button type="button" id="save-button" class="btn btn-info ml-2" data-toggle="modal"
-              data-target="#save-protocol-modal">Save</button>
-
-            <!-- Delete button-->
-            <button type="button" id="verify-button" class="btn btn-info ml-2" data-toggle="modal"
-              data-target="#delete-protocol-modal">Delete</button>
-
-          </div>
-
+        <!-- image_analyses table-->
+        <div class="container-fluid flex-fill">
+          <br>
+          <h4>image_analyses</h4>
+          <a target="adminer"
+            href="https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=image_analyses">
+            view image_analyses in database
+          </a>
         </div>
-        <!-- end Toolbar -->
-
-        <!-- plate-acquisition table div-->
-        <div id="plate-acq-table-div" class="container-fluid flex-fill">
+        <div id="image_analyses-table-div" class="container-fluid flex-fill">
         </div>
-        <!-- text div -->
-        <div id="Adminer-link-div" class="container-fluid flex-fill">
-           <a target="adminer" 
-              href="https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=plate_acquisition">View plate_acquisition in database</a>
-        </div>
-        <!-- end text div -->
 
+                <!-- image_sub_analyses table-->
+                <div class="container-fluid flex-fill">
+                  <br>
+                  <h4>image_sub_analyses</h4>
+                  <a target="adminer"
+                    href="https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=image_sub_analyses">
+                    view image_sub_analyses in database
+                  </a>
+                </div>
+                <div id="image_sub_analyses-table-div" class="container-fluid flex-fill">
+                </div>
+
+        <!-- job table-->
+        <div class="container-fluid flex-fill">
+          <br>
+          <h4>Jobs</h4>
+          <pre>kubectl get jobs -n cpp</pre>
+        </div>
         <div id="jobs-table-div" class="container-fluid flex-fill">
         </div>
-        <!-- text div -->
-        <div id="text-div" class="container-fluid flex-fill">
-          <pre>kubectl get jobs -n cpp</pre>   
+        <!-- end  div -->
+
+        <!-- plate-acquisition table div-->
+        <div class="container-fluid flex-fill">
+          <br>
+          <h4>plate_acquisition</h4>
+          <a target="adminer"
+            href="https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=plate_acquisition">
+            view plate_acquisition in database
+          </a>
         </div>
-        <!-- end text div -->
+        <div id="plate-acq-table-div" class="container-fluid flex-fill">
+        </div>
 
 
 
@@ -306,68 +303,64 @@
   <!-- Modal dialogs -->
 
 
-  <!-- Modal dialog "Save ...." -->
-  <div class="modal" id="save-protocol-modal" tabindex="-1" role="dialog" aria-labelledby="save-protocolLabel"
+  <!-- Modal dialog "Delete ...." -->
+  <div class="modal" id="delete-analysis-modal" tabindex="-1" role="dialog" aria-labelledby="delete-analysis-modal"
     aria-hidden="true">
     <div class="modal-dialog " role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="save-protocolLabel">Save protocol</h5>
+          <h5 class="modal-title" id="delete-analysis-modal">Delete analysis?</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="save-protocol-name" class="col-form-label">Protocol Name:</label>
-            <input type="text" class="form-control" id="save-protocol-name">
+            <label for="delete-analysis-id-input" class="col-form-label">Analysis id:</label>
+            <input readonly type="text" class="form-control" id="delete-analysis-id-input">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="apiSaveProtocol()">Save</button>
+          <button type="button" class="btn btn-danger" onclick="apiDeleteAnalysis()">Delete</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="modal" id="delete-protocol-modal" tabindex="-1" role="dialog" aria-labelledby="delete-protocolLabel"
-    aria-hidden="true">
-    <div class="modal-dialog " role="document">
+
+  <!-- Modal dialog "Logmessage.." -->
+  <div class="modal" id="log-modal" tabindex="1" role="dialog" aria-labelledby="logmodalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="delete-protocolLabel">Delete protocol</h5>
+          <h5 class="modal-title" id="logmodalLabel">Log</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="delete-protocol-name" class="col-form-label">Protocol to be deleted, Name:</label>
-            <input type="text" class="form-control" id="delete-protocol-name">
-          </div>
-        </div>
+        <div id="logdiv" class="modal-body"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-danger" onclick="apiDeleteProtocol()">Delete</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!--Verification modal alert OK-->
-  <div class="modal" id="alert-modal">
-    <div class="modal-dialog modal-sm">
-      <div class="modal-content">
-        <div class="modal-header bg-success">
-          <h5 class="modal-title"></h5>
-        </div>
-        <div class="modal-body" id="alert-modal-body-div">
-          Verification OK
-        </div>
-      </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-  </div><!-- /.modal -->
+    <!--Verification modal alert OK-->
+    <div class="modal" id="alert-modal">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header bg-success">
+            <h5 class="modal-title"></h5>
+          </div>
+          <div class="modal-body" id="alert-modal-body-div">
+            Verification OK
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
   <!-- Modal dialog "Errormessage.." -->
   <div class="modal" id="error-modal" tabindex="1" role="dialog" aria-labelledby="errormodalLabel" aria-hidden="true">

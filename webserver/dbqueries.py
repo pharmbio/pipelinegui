@@ -11,19 +11,41 @@ def get_connection():
 
 def list_plate_acquisitions():
 
-    logging.debug("list_plate_acquisitions")
+    query = ("SELECT * "
+             "FROM plate_acquisition "
+             "ORDER BY id DESC "
+             "LIMIT 1000")
+
+    return select_from_db(query)
+
+def list_image_analyses():
+
+    query = ("SELECT * "
+             "FROM image_analyses "
+             "ORDER BY id DESC "
+             "LIMIT 1000")
+
+    return select_from_db(query)
+
+def list_image_sub_analyses():
+
+    query = ("SELECT * "
+             "FROM image_sub_analyses "
+             "ORDER BY sub_id DESC "
+             "LIMIT 1000")
+
+    return select_from_db(query)
+
+
+def select_from_db(query):
+
+    logging.debug("Inside select from query")
+    logging.info("query=" + str(query))
 
     conn = None
     try:
 
         conn = get_connection()
-
-        query = ("SELECT * "
-                 "FROM plate_acquisition "
-                 "ORDER BY id DESC "
-                 "LIMIT 1000")
-
-        logging.info("query" + str(query))
 
         cursor = conn.cursor()
         cursor.execute(query)
@@ -38,11 +60,11 @@ def list_plate_acquisitions():
             # apply str function to every element before appending, and convert to list to avoid having iterator map objects returned           
             resultlist.append(list(map(str, row)))
 
-        logging.debug(resultlist)
+        # logging.debug(resultlist)
                                
         cursor.close()
 
-        logging.debug(str(json.dumps(resultlist, indent=2)))
+        # logging.debug(str(json.dumps(resultlist, indent=2)))
 
         return resultlist
 
@@ -52,6 +74,7 @@ def list_plate_acquisitions():
     finally:
         if conn is not None:
             conn.close()
+
 
 def list_analysis_pipelines():
 
@@ -182,6 +205,46 @@ def delete_analysis_pipelines(name):
 
         cursor = conn.cursor()
         retval = cursor.execute(query, (name,))
+        conn.commit()
+        cursor.close()
+
+        return "OK"
+
+    except (Exception, psycopg2.DatabaseError) as err:
+        logging.exception("Message")
+        raise err
+    finally:
+        if conn is not None:
+            conn.close()
+
+def delete_analysis(id):
+
+    logging.debug("inside delete_analysis")
+    logging.debug("id" + str(id))
+    
+    query = ("DELETE FROM image_analyses WHERE id = %s")
+    values = (id,)
+    delete_from_db(query, values)
+
+    query = ("DELETE FROM image_sub_analyses WHERE analysis_id = %s")
+    values = (id,)
+    delete_from_db(query, values)
+
+
+def delete_from_db(query, values):
+
+    logging.debug("inside delete_analysis")
+    logging.debug("values" + str(values))
+
+    conn = None
+    try:
+
+        conn = get_connection()
+    
+        logging.info("query" + str(query))
+
+        cursor = conn.cursor()
+        retval = cursor.execute(query, values)
         conn.commit()
         cursor.close()
 

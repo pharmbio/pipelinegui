@@ -43,3 +43,4 @@ services:
     volumes:
       - pipelinegui-webroot-bind:/app
       - ../kube_config/:/kube
+      - /share/data/cellprofiler/automation/:/cpp_work # mount the work and result nfs share from the fs of the dev node

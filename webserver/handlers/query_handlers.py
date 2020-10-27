@@ -9,6 +9,7 @@ import tornado.web
 
 import dbqueries
 import kubeutils
+import fileutils
 
 
 class ListPlateAcqHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
@@ -24,6 +25,40 @@ class ListPlateAcqHandler(tornado.web.RequestHandler): #pylint: disable=abstract
         logging.info("inside ListPlateAcqHandler, limit=" + str(limit))
 
         result = dbqueries.list_plate_acquisitions()
+
+        logging.debug(result)
+        self.finish({'result':result})
+
+class ListImageAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+
+    def prepare(self):
+        header = "Content-Type"
+        body = "application/json"
+        self.set_header(header, body)
+
+    def get(self, limit, sortorder):
+        """Handles GET requests.
+        """
+        logging.info("inside ListImageAnalysesHandler, limit=" + str(limit))
+
+        result = dbqueries.list_image_analyses()
+
+        logging.debug(result)
+        self.finish({'result':result})
+
+class ListImageSubAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+
+    def prepare(self):
+        header = "Content-Type"
+        body = "application/json"
+        self.set_header(header, body)
+
+    def get(self, limit, sortorder):
+        """Handles GET requests.
+        """
+        logging.info("inside ListImageSubAnalysesHandler, limit=" + str(limit))
+
+        result = dbqueries.list_image_sub_analyses()
 
         logging.debug(result)
         self.finish({'result':result})
@@ -45,6 +80,25 @@ class ListJobsHandler(tornado.web.RequestHandler): #pylint: disable=abstract-met
         logging.debug(result)
         self.finish({'result':result})
 
+class ListPipelinefilesHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+
+    def prepare(self):
+        header = "Content-Type"
+        body = "application/json"
+        self.set_header(header, body)
+
+    def get(self):
+        """Handles GET requests.
+        """
+        logging.info("inside ListPipelinefilesHandler")
+
+        result = fileutils.list_pipelinefiles()
+
+        logging.debug(result)
+        self.finish({'result':result})
+
+
+
 class DeleteAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
 
     def prepare(self):
@@ -61,6 +115,47 @@ class DeleteAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: 
         logging.debug(result)
         self.finish({'result':result})
 
+class ListJobLogHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+
+    def prepare(self):
+        header = "Content-Type"
+        body = "application/json"
+        self.set_header(header, body)
+
+    def get(self, job_name):
+        """Handles GET requests.
+        """
+        logging.info("job_name: " + str(job_name))
+        result = kubeutils.get_job_log(job_name)
+
+        logging.debug(result)
+        self.finish({'result':result})
+
+
+
+class DeleteAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+    """
+    In version 2 check result and propagate error to client
+    """
+    def prepare(self):
+        header = "Content-Type"
+        body = "application/json"
+        self.set_header(header, body)
+
+    def get(self, id):
+        """Handles GET requests.
+        """
+        logging.info("id: " + str(id))
+        result1 = dbqueries.delete_analysis(id)
+        result2 = str(kubeutils.delete_analysis_jobs(id))
+
+        result = []
+        result.append(result1)
+        result.append(result2)
+        
+        logging.debug(result)
+        self.finish({'result':result})
+
 class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
     """
     The query handler handles form posts and returns list of results
@@ -72,12 +167,12 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         # log all input parameters
         logging.debug("%r %s" % (self.request, self.request.body.decode()))
 
-        plate_aquisition = self.get_argument("plate_acq-input")
+        plate_acquisition = self.get_argument("plate_acq-input")
         analysis_pipeline_name = self.get_argument("analysis_pipelines-select")
         
         #logging.debug("form_data:" + str(form_data))
 
-        results = dbqueries.submit_analysis(plate_aquisition, analysis_pipeline_name)
+        results = dbqueries.submit_analysis(plate_acquisition, analysis_pipeline_name)
         logging.debug(results)
         self.finish({'results':results})
 

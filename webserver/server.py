@@ -45,13 +45,18 @@ class IndexTemplateHandler(tornado.web.RequestHandler): #pylint: disable=abstrac
 ROUTES = [
           (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), 'static')}),
           (r'/api/list/plate_acquisition/(?P<limit>.+)/(?P<sortorder>.+)', query_handlers.ListPlateAcqHandler),
+          (r'/api/list/image_analyses/(?P<limit>.+)/(?P<sortorder>.+)', query_handlers.ListImageAnalysesHandler),
+          (r'/api/list/image_sub_analyses/(?P<limit>.+)/(?P<sortorder>.+)', query_handlers.ListImageSubAnalysesHandler),
           (r'/api/list/jobs', query_handlers.ListJobsHandler),
+          (r'/api/list/joblog/(?P<job_name>.+)', query_handlers.ListJobLogHandler),
+          (r'/api/list/pipelinefiles', query_handlers.ListPipelinefilesHandler),
           (r'/run-analysis.html', DefaultTemplateHandler),
           (r'/create-analysis.html', DefaultTemplateHandler),
           (r'/api/analysis-pipelines/save', query_handlers.SaveAnalysisPipelinesQueryHandler),
            (r'/api/analysis-pipelines/run', query_handlers.RunAnalysisQueryHandler),
           (r'/api/analysis-pipelines/delete/(?P<name>.+)', query_handlers.DeleteAnalysisPipelinesQueryHandler),
           (r'/api/analysis-pipelines/(?P<name>.+)*', query_handlers.ListAnalysisPipelinesQueryHandler),
+          (r'/api/analysis/delete/(?P<id>.+)', query_handlers.DeleteAnalysisQueryHandler),
           (r'/index.html', IndexTemplateHandler),
           (r'/', IndexTemplateHandler),
          ]
