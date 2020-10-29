@@ -56,17 +56,29 @@ def select_from_db(query):
 
         resultlist.append(colnames)
 
-        for row in cursor:
-            # apply str function to every element before appending, and convert to list to avoid having iterator map objects returned           
-            resultlist.append(list(map(str, row)))
+ #       for row in cursor:
+ #           # apply str function to every element before appending, and convert to list to avoid having iterator map objects returned           
+ #           resultlist.append(list(map(str, row)))
+
+  #      resultlist = [dict(zip([key[0] for key in cursor.description], row)) for row in cursor]
 
         # logging.debug(resultlist)
-                               
+
+        rows = cursor.fetchall()
+
         cursor.close()
 
-        # logging.debug(str(json.dumps(resultlist, indent=2)))
+        resultlist = [colnames] + rows
 
-        return resultlist
+        # First dump to string
+        result_jsonstring = json.dumps(resultlist, indent=2, default=str)
+
+        # Then reload into json
+        result = json.loads(result_jsonstring)
+
+        #logging.debug(json.dumps(result, indent=2, default=str))
+
+        return result
 
     except (Exception, psycopg2.DatabaseError) as err:
         logging.exception("Message")
@@ -172,11 +184,14 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name):
         analysis_id = cursor.fetchone()[0]
         cursor.close()
 
+        depends_on_id = []
         for sub_analysis in meta:
             insert_sub_cursor = conn.cursor() # piro says https://stackoverflow.com/users/10138/piro
-            insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta) "
-                                "VALUES (%s,%s,%s)")
-            insert_sub_cursor.execute(insert_sub_query, (analysis_id, plate_acquisition, json.dumps(sub_analysis),))
+            insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta, depends_on_sub_id) "
+                                "VALUES (%s,%s,%s,%s) RETURNING sub_id")
+            insert_sub_cursor.execute(insert_sub_query, (analysis_id, plate_acquisition, json.dumps(sub_analysis),json.dumps(depends_on_id),))
+            returned_sub_id = insert_sub_cursor.fetchone()[0]
+            depends_on_id = [returned_sub_id]
         
         conn.commit()
         

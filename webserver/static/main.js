@@ -130,7 +130,7 @@ function apiCreateImageAnalysesTable() {
         response.json().then(function (json) {
 
           console.log('result', json);
-          drawTableWithControls(json['result'], "image_analyses-table-div");
+          drawImageAnalysisTable(json['result']);
 
         });
       }
@@ -205,6 +205,61 @@ function drawJobsTable(rows){
   drawTable(rows, "jobs-table-div")
 }
 
+// Notebook link
+// http(s)://<server:port>/<lab-location>/lab/tree/path/to/notebook.ipynb
+
+function drawImageAnalysisTable(rows){
+
+  // Before drawing table add ("Show logs column")
+
+  // Add new column header to front of header row
+
+  console.log("myrows", rows);
+
+  let cols = rows[0];
+  cols.splice(0, 0, "Controls");
+
+  // index of "id" in the database rows
+  let id_col_index = 0
+
+
+  // index of "results" in the database rows
+  let result_col_index = 9
+  cols.splice(10, 0, "file_list-links");
+  
+
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+
+    let id = rows[nRow][id_col_index];
+
+    let deleteLink = "<a href='#' onClick='confirmDeleteAnalysis(" + id + ");'>Delete</a>";
+    let stopLink = "<a href='#' onClick='confirmStopAnalysis(" + id + ");'>Stop</a>";
+    let restartLink = "<a href='#' onClick='confirmRestartAnalysis(" + id + ");'>Restart</a>";
+    let new_cell_content = restartLink + "<br>" + deleteLink + "<br>" + stopLink;
+
+    // insert cell first
+    rows[nRow].splice(0,0,new_cell_content);
+
+
+    let result = rows[nRow][result_col_index];
+    console.log("result_list", result);
+
+    let cell_contents = "";
+
+    for(var file_path of result.file_list){
+      console.log("file_path", file_path);
+      let linkified_file_path = "<a href='api/file/get/" + file_path + ");'>" + file_path + "</a>";
+      cell_contents += linkified_file_path;
+    }
+
+    // Replace result with new result content
+    rows[nRow].splice(10,0,cell_contents);
+
+  }
+  
+  drawTable(rows, "image_analyses-table-div");
+}
+
 function drawTable(rows, divname) {
 
   console.log("rows", rows);
@@ -238,7 +293,13 @@ function drawTable(rows, divname) {
     for (let col = 0; col < cols.length; col++) {
 
       let cell = document.createElement('td');
-      cell.innerHTML = rows[row][col];
+      let content = rows[row][col];
+      if(typeof content == 'object'){
+        cell.innerHTML = JSON.stringify(content);
+      }else{
+        cell.innerHTML = content;
+      }
+      
       //cell.className = 'tableCell';
       rowElement.appendChild(cell);
     }
@@ -253,7 +314,8 @@ function drawTable(rows, divname) {
 
 }
 
-function drawTableWithControls(rows, divname) {
+/*
+function drawImageAnalysisTable(rows, divname) {
 
   console.log("rows", rows);
   console.log("divname", divname);
@@ -315,6 +377,7 @@ function drawTableWithControls(rows, divname) {
   console.log("drawTable finished")
 
 }
+*/
 
 function displayModalServerError(status, text) {
   displayModalError("Server error: " + status + ", Response: " + text);
