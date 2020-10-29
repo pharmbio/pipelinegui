@@ -160,7 +160,7 @@ function apiCreateImageSubAnalysesTable() {
         response.json().then(function (json) {
 
           console.log('result', json);
-          drawTable(json['result'], "image_sub_analyses-table-div");
+          drawImageSubAnalysisTable(json['result']);
 
         });
       }
@@ -210,24 +210,38 @@ function drawJobsTable(rows){
 
 function drawImageAnalysisTable(rows){
 
-  // Before drawing table add ("Show logs column")
+  // Before drawing table add ("Controls")
+  rows = addControlsColumn(rows)
 
-  // Add new column header to front of header row
+  // Before drawing table add ("File-Links")
+  rows = addFileLinksColumn(rows, 9)
 
-  console.log("myrows", rows);
+  drawTable(rows, "image_analyses-table-div");
 
+}
+
+function drawImageSubAnalysisTable(rows){
+
+  console.log("Inside drawImageSubAnalysisTable");
+
+  // Before drawing table add ("File-Links")
+  rows = addFileLinksColumn(rows, 8)
+
+  drawTable(rows, "image_sub_analyses-table-div");
+
+}
+
+
+function addControlsColumn(rows){
+
+  // Define which column in result contains the id
+  let id_col_index = 0;
+
+  // Add header
   let cols = rows[0];
   cols.splice(0, 0, "Controls");
 
-  // index of "id" in the database rows
-  let id_col_index = 0
-
-
-  // index of "results" in the database rows
-  let result_col_index = 9
-  cols.splice(10, 0, "file_list-links");
-  
-
+  // Create new cell in all rows
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
     let id = rows[nRow][id_col_index];
@@ -240,6 +254,20 @@ function drawImageAnalysisTable(rows){
     // insert cell first
     rows[nRow].splice(0,0,new_cell_content);
 
+  }
+
+  return rows;
+
+}
+
+function addFileLinksColumn(rows, result_col_index){
+
+  // Add header to new cell 
+  let cols = rows[0];
+  cols.splice(result_col_index + 1, 0, "file_list-links");
+  
+  // Create new cell in all rows
+  for (let nRow = 1; nRow < rows.length; nRow++) {
 
     let result = rows[nRow][result_col_index];
     console.log("result_list", result);
@@ -252,12 +280,12 @@ function drawImageAnalysisTable(rows){
       cell_contents += linkified_file_path;
     }
 
-    // Replace result with new result content
-    rows[nRow].splice(10,0,cell_contents);
+    // Add result column result with new result content
+    rows[nRow].splice(result_col_index + 1,0,cell_contents);
 
   }
   
-  drawTable(rows, "image_analyses-table-div");
+  return rows;
 }
 
 function drawTable(rows, divname) {
