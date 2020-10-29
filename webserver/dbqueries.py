@@ -50,11 +50,7 @@ def select_from_db(query):
         cursor = conn.cursor()
         cursor.execute(query)
 
-        resultlist = []
-
         colnames = [desc[0] for desc in cursor.description]
-
-        resultlist.append(colnames)
 
  #       for row in cursor:
  #           # apply str function to every element before appending, and convert to list to avoid having iterator map objects returned           
@@ -68,15 +64,16 @@ def select_from_db(query):
 
         cursor.close()
 
+        resultlist = []
         resultlist = [colnames] + rows
 
-        # First dump to string
+        # First dump to string (This is because datetime cant be converted to string without the default=str function)
         result_jsonstring = json.dumps(resultlist, indent=2, default=str)
 
         # Then reload into json
         result = json.loads(result_jsonstring)
 
-        #logging.debug(json.dumps(result, indent=2, default=str))
+        # logging.debug(json.dumps(result, indent=2, default=str))
 
         return result
 
