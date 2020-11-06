@@ -8,7 +8,7 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Pharmb.io pipelinegui</title>
+  <title>Pipelinegui, run-analysis, pharmb.io</title>
 
   <link rel="shortcut icon" href="/static/pharmbio_logo_square_64x64.png" type="image/x-icon">
 
@@ -224,23 +224,6 @@
       <form id='main-form'>
         <!-- onsubmit='return false;' -->
 
-       <!-- Toolbar -->
-       <div id="toolbar-div" class="container-fluid mt-2 mb-2">
-
-        <div class="input-group align-bottom">
-
-          <!-- Plate aq input -->
-          <div class="input-group-prepend">
-            <label class="input-group-text" for="plate_acq-select">Select plate acquisition:</label>
-          </div>
-          <input class="form-control" style="max-width: 245px;" name="plate_acq-input" id="plate_acq-input">
-        </input>
-
-        </div>
-
-      </div>
-      <!-- end Toolbar -->
-
         <!-- Toolbar -->
         <div id="toolbar-div" class="container-fluid mt-2 mb-2">
 
@@ -250,7 +233,8 @@
             <div class="input-group-prepend">
               <label class="input-group-text" for="analysis_pipelines-select">Select analysis:</label>
             </div>
-            <select name="analysis_pipelines-select" class="form-control" style="max-width: 300px;" id="analysis_pipelines-select">
+            <select name="analysis_pipelines-select" class="form-control" style="max-width: 300px;"
+              id="analysis_pipelines-select">
             </select>
 
           </div>
@@ -269,6 +253,34 @@
 
         </div>
 
+        <!-- Toolbar -->
+        <div id="toolbar-div" class="container-fluid mt-2 mb-2">
+
+          <div class="input-group align-bottom">
+
+            <label class="input-group-text">Input data:</label>
+
+            <!-- Plate aq input -->
+            <div class="input-group-prepend ml-2">
+              <label class="input-group-text" for="plate_acq-input">Plate acquisition id:</label>
+            </div>
+            <input class="form-control" style="max-width: 200px;" name="plate_acq-input" id="plate_acq-input">
+            </input>
+
+            <label class="input-group-text ml-2"> OR </label>
+
+            <!-- Analysis id input -->
+            <div class="input-group-prepend ml-2">
+              <label class="input-group-text" for="indata_analysis_id-input">Analysis id (not implemented yet):</label>
+            </div>
+            <input class="form-control" style="max-width: 100px;" name="indata_analysis_id-input" id="plate_acq-input">
+            </input>
+
+          </div>
+
+        </div>
+        <!-- end Toolbar -->
+
 
         <!-- Toolbar -->
         <div id="toolbar-div" class="container-fluid mt-2 mb-2">
@@ -283,6 +295,19 @@
 
         </div>
         <!-- end Toolbar -->
+
+
+        <!-- plate-acquisition table div-->
+        <div class="container-fluid flex-fill">
+          <br>
+          <h4>plate_acquisition</h4>
+          <a target="adminer"
+            href="https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=plate_acquisition">
+            view plate_acquisition in database
+          </a>
+        </div>
+        <div id="plate-acq-table-div" class="container-fluid flex-fill">
+        </div>
 
 
 

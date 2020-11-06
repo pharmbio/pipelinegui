@@ -214,7 +214,7 @@ function drawImageAnalysisTable(rows){
   rows = addControlsColumn(rows)
 
   // Before drawing table add ("File-Links")
-  rows = addFileLinksColumn(rows, 9)
+  //rows = addFileLinksColumn(rows, 9)
 
   drawTable(rows, "image_analyses-table-div");
 
@@ -225,7 +225,7 @@ function drawImageSubAnalysisTable(rows){
   console.log("Inside drawImageSubAnalysisTable");
 
   // Before drawing table add ("File-Links")
-  rows = addFileLinksColumn(rows, 8)
+  // rows = addFileLinksColumn(rows, 8)
 
   drawTable(rows, "image_sub_analyses-table-div");
 
@@ -748,4 +748,5 @@ function initRunAnalysisPage() {
   console.log("Inside initRunAnalysisPage()");
   apiLoadPlateAcqSelect();
   apiLoadAnalysisPipelines();
+  apiCreatePlateAcqTable();
 }

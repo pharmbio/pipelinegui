@@ -21,7 +21,7 @@ def list_plate_acquisitions():
 def list_image_analyses():
 
     query = ("SELECT * "
-             "FROM image_analyses "
+             "FROM image_analyses_v1 "
              "ORDER BY id DESC "
              "LIMIT 1000")
 
@@ -30,7 +30,7 @@ def list_image_analyses():
 def list_image_sub_analyses():
 
     query = ("SELECT * "
-             "FROM image_sub_analyses "
+             "FROM image_sub_analyses_v1 "
              "ORDER BY sub_id DESC "
              "LIMIT 1000")
 
@@ -163,26 +163,28 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name):
 
         conn = get_connection()
 
-        select_query = ("SELECT meta FROM analysis_pipelines WHERE name=%s")
+        select_query = ("SELECT name, meta FROM analysis_pipelines WHERE name=%s")
         logging.info("select_query" + str(select_query))
         cursor0 = conn.cursor()
         cursor0.execute(select_query, (analysis_pipeline_name,))
-        meta = cursor0.fetchone()[0]
+        first_row = cursor0.fetchone()
+        pipeline_name = first_row[0]
+        pipeline_meta = first_row[1]
         cursor0.close()
 
         # Build query
-        query = ("INSERT INTO image_analyses(plate_acquisition_id) "
-                 "VALUES (%s) RETURNING id")
+        query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name) "
+                 "VALUES (%s, %s) RETURNING id")
 
         logging.info("query" + str(query))
 
         cursor = conn.cursor()
-        cursor.execute(query, (plate_acquisition,))
+        cursor.execute(query, (plate_acquisition, pipeline_name,))
         analysis_id = cursor.fetchone()[0]
         cursor.close()
 
         depends_on_id = []
-        for sub_analysis in meta:
+        for sub_analysis in pipeline_meta:
             insert_sub_cursor = conn.cursor() # piro says https://stackoverflow.com/users/10138/piro
             insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta, depends_on_sub_id) "
                                 "VALUES (%s,%s,%s,%s) RETURNING sub_id")
