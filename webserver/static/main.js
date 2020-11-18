@@ -1,7 +1,37 @@
 /*
   Javascript version: ECMAScript 6 (Javascript 6)
  */
+class Table{
+  constructor(rows) {
+    this.rows = rows;
+  }
 
+  getHeaders(){
+    return this.rows[0];
+  }
+
+  getCell(nRow, columnName){
+    for(let n = 0; n < this.getColsCount(); n++){
+      if(this.getHeaders()[n] == columnName){
+        return this.rows[nRow +1][n]
+      }
+    }
+    return null;
+  }
+
+  getCellColIndex(nRow, nCol){
+    return this.rows[nRow +1][nCol]
+  }
+
+  getRowsCount(){
+    return this.rows.length - 1;
+  }
+
+  getColsCount(){
+    return this.rows[0].length;
+  }
+
+}
 
 
 function apiCreatePlateAcqTable() {
@@ -16,7 +46,7 @@ function apiCreatePlateAcqTable() {
         response.json().then(function (json) {
 
           console.log('result', json);
-          drawTable(json['result'], "plate-acq-table-div")
+          drawPlateAcqTable(json['result']);
 
         });
       }
@@ -192,7 +222,7 @@ function drawJobsTable(rows){
   let cols = rows[0];
   cols.push("log")
 
-  let name_col_index = 0
+  let name_col_index = cols.indexOf("NAME");
 
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
@@ -210,13 +240,55 @@ function drawJobsTable(rows){
 
 function drawImageAnalysisTable(rows){
 
+  // Before drawing table, linkify barcode
+  rows = addLinkToBarcodeColumn(rows)
+
   // Before drawing table add ("Controls")
   rows = addControlsColumn(rows)
 
+  // Before drawing table add ("View in notebook")
+  rows = addNotebookLinkColumn(rows)
+
   // Before drawing table add ("File-Links")
-  //rows = addFileLinksColumn(rows, 9)
+  rows = addFileLinksColumn(rows)
 
   drawTable(rows, "image_analyses-table-div");
+}
+
+function drawPlateAcqTable(rows){
+
+  // Before drawing table, linkify barcode
+  rows = addLinkToBarcodeColumn(rows);
+
+  drawTable(rows, "plate-acq-table-div");
+}
+
+function addLinkToBarcodeColumn(rows){
+
+  console.log("Inside addLinkToBarcodeColumn");
+
+  let cols = rows[0];
+
+  // Define which column is barcode column
+  let barcode_col_index = cols.indexOf("plate_barcode");
+  
+  let base_url = "https://imagedb.k8s-prod.pharmb.io/?";
+  
+  // Start from row 1 (0 is headers)
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+
+    let barcode = rows[nRow][barcode_col_index];
+    console.log("barcode", barcode);
+
+    let link_url = base_url + "barcode=" + encodeURI(barcode)
+
+    let new_contents = "<a target='imagedb' href='" + link_url + "'>" + barcode + "</a>"
+
+    // replace cell
+    rows[nRow][barcode_col_index]  = new_contents;
+  }
+
+  return rows;
 
 }
 
@@ -224,22 +296,59 @@ function drawImageSubAnalysisTable(rows){
 
   console.log("Inside drawImageSubAnalysisTable");
 
-  // Before drawing table add ("File-Links")
-  // rows = addFileLinksColumn(rows, 8)
-
   drawTable(rows, "image_sub_analyses-table-div");
+
+}
+
+function addNotebookLinkColumn(rows){
+
+  console.log("Inside Add NotebokLinkColumn");
+
+  // Add new column header to end of header row
+  let cols = rows[0];
+  cols.push("Jupyter Link")
+
+  // Define which column in result contains the result
+  let result_col_index = cols.indexOf("result");
+  
+  let base_url = "https://cpp-notebook-nogpu.k8s-prod.pharmb.io" + "/lab/tree" + "/mnt/cpp-pvc/";
+  
+  // Start from row 1 (0 is headers)
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+
+    let result = rows[nRow][result_col_index];
+    console.log("result_list", result);
+
+    let cell_contents = "";
+   
+    if(result && result.job_folder){
+
+      let link_url = base_url + result.job_folder
+
+
+       // results/384-P000014-helgi-U2OS-24h-L1-copy2/60/15
+ 
+       cell_contents = "<a target='notebook' href='" + link_url + "'>Link</a>"
+
+    }
+    
+    rows[nRow].push(cell_contents);
+  
+  }
+
+  return rows;
 
 }
 
 
 function addControlsColumn(rows){
 
-  // Define which column in result contains the id
-  let id_col_index = 0;
-
   // Add header
   let cols = rows[0];
   cols.splice(0, 0, "Controls");
+
+  // Define which column in result contains the id (-1 because new Controls is inserted in front)
+  let id_col_index = cols.indexOf("id") - 1;
 
   // Create new cell in all rows
   for (let nRow = 1; nRow < rows.length; nRow++) {
@@ -260,24 +369,45 @@ function addControlsColumn(rows){
 
 }
 
-function addFileLinksColumn(rows, result_col_index){
+function basename(str) {
+  let separator = "/";
+  return str.substr(str.lastIndexOf(separator) + 1);
+}
+
+
+function addFileLinksColumn(rows){
+  console.log("Inside addFileLinksColumn");
 
   // Add header to new cell 
   let cols = rows[0];
+  result_col_index = cols.indexOf("result");
+
   cols.splice(result_col_index + 1, 0, "file_list-links");
+  console.log("rows.length", rows.length);
   
   // Create new cell in all rows
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
+    console.log("nRow:", nRow);
+
     let result = rows[nRow][result_col_index];
-    console.log("result_list", result);
+    console.log("result:)", result);
 
     let cell_contents = "";
 
-    for(var file_path of result.file_list){
-      console.log("file_path", file_path);
-      let linkified_file_path = "<a href='api/file/get/" + file_path + ");'>" + file_path + "</a>";
-      cell_contents += linkified_file_path;
+    if(result != null){
+      console.log("result.file_list", result.file_list);
+      for(var file_path of result.file_list){
+        console.log("file_path", file_path);
+        if(file_path.endsWith(".pdf") || file_path.endsWith(".csv")){
+          console.log("file_path", file_path);
+
+          link_text = basename(file_path);
+
+          let linkified_file_path = "<a href='/" + file_path + "'>" + link_text + "</a>";
+          cell_contents += linkified_file_path + ", "
+        }
+      }
     }
 
     // Add result column result with new result content
@@ -298,7 +428,7 @@ function drawTable(rows, divname) {
   // Create Table
   let table = document.createElement('table');
   table.id = divname + "-table";
-  table.className = 'table w-auto text-xsmall';
+  table.className = 'table text-xsmall';
 
   // First add header row
   let headerRow = document.createElement('tr');
@@ -323,10 +453,21 @@ function drawTable(rows, divname) {
       let cell = document.createElement('td');
       let content = rows[row][col];
       if(typeof content == 'object'){
-        cell.innerHTML = JSON.stringify(content);
-      }else{
-        cell.innerHTML = content;
+        content = JSON.stringify(content);
       }
+
+      if(content === "null"){
+        content = "";
+      }
+
+      // Truncate large content
+      TRUNCATE_LEN = 1000;
+      if(content != null && content.length > TRUNCATE_LEN){
+        content = content.substring(0, TRUNCATE_LEN);
+        content += "....."
+      }
+      
+      cell.innerHTML = content;
       
       //cell.className = 'tableCell';
       rowElement.appendChild(cell);

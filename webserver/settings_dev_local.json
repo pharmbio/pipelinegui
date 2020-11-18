@@ -5,5 +5,6 @@
   "DB_HOSTNAME": "imagedb",
   "DB_NAME": "imagedb",
   "DB_ADMIN_URL": "https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public",
-  "DEBUG": "True"
+  "DEBUG": "True",
+  "STATIC_RESULTS_DIR": "/cpp_work/results"
 }

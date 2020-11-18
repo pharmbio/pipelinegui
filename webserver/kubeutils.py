@@ -3,6 +3,7 @@ import logging
 import os
 import yaml
 import base64
+import datetime
 
 def is_debug():
     """
@@ -27,7 +28,7 @@ def list_jobs(namespace='cpp'):
     job_list = k8s_batch_api.list_namespaced_job(namespace=namespace)
 
     # filter out all finished jobs
-    rows = [["NAME", "ACTIVE", "SUCCEEDED", "FAILED", "STARTED", "FINISHED", "DURATION", "AGE", "STATUS"]]
+    rows = [["NAME", "ACTIVE", "SUCCEEDED", "FAILED", "CREATED", "STARTED", "FINISHED", "DURATION", "AGE", "STATUS"]]
     for job in job_list.items:
 
         # logging.debug(job)
@@ -37,13 +38,13 @@ def list_jobs(namespace='cpp'):
         # convert to dict for usability
         job_dict = job.to_dict()
 
-        logging.debug("Job:" + str(job))
-        logging.debug(job.metadata.cluster_name)
+        #logging.debug("Job:" + str(job))
+        # logging.debug(job.metadata.cluster_name)
 
         # metadata, spec, status
 
         # name
-        name = job_dict['metadata']['name']
+        name = job.metadata.name
 
         # active
         active = int(job.status.active or 0)
@@ -54,38 +55,72 @@ def list_jobs(namespace='cpp'):
         # failed
         failed = int(job.status.failed or 0)
 
+        # created
+        created = job.metadata.creation_timestamp
+
         # start
-        started = str(job.status.start_time)
+        started = job.status.start_time
 
         # Finished
-        finished = str(job.status.completion_time)
+        finished = job.status.completion_time
 
         # Duration
-        duration = "?"
+        duration = getDuration(started, finished)
 
         # Age
-        age = "?"
+        age = getAge(created)
 
         # Job status
-        if job_dict['status']['conditions'] == None:
-            status = "None"
+        if job.status.conditions is not None and len(job.status.conditions) > 0:
+            status = job.status.conditions[0].type
         else:
-            status = job_dict['status']['conditions'][0]['type']
+            status = "None"
+
 
         row.append(name)
         row.append(active)
         row.append(succeeded)
         row.append(failed)
-        row.append(started)
-        row.append(finished)
-        row.append(duration)
-        row.append(age)
+        row.append(str(created))
+        row.append(str(started))
+        row.append(str(finished))
+        row.append(str(duration))
+        row.append(str(age))
         row.append(status)
 
         rows.append(row)
 
     
     return rows
+
+def getDuration(started, finished):
+
+    duration = None
+
+    if started == None:
+        duration = None
+    elif finished == None:
+        logging.info(str(datetime.datetime.utcnow()))
+        duration =  None #started - datetime.datetime.utcnow()
+    else:
+        duration = finished - started
+
+    return duration
+
+def getAge(created):
+
+    if created == None:
+        return None
+
+    now = datetime.datetime.now()
+    now_utc = now.replace(tzinfo = datetime.timezone.utc) 
+
+    logging.info("created" + str(created))
+    logging.info("now" + str(now_utc))
+
+    age = now_utc - created
+
+    return age
 
 
 
@@ -98,12 +133,13 @@ def get_job_log(job_name, namespace='cpp'):
     pods_list = k8s_core_api.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
 
     # TODO in future one job could consist of many pods, but for now we only get log from first
-    pod_name = pods_list.items[0].metadata.name
-
-    # logging.debug("pod_name" + str(pod_name))
-
-    response = k8s_core_api.read_namespaced_pod_log(namespace=namespace, name=pod_name)
-
+    response = ""
+    if pods_list is not None and pods_list.items is not None and len(pods_list.items) > 0:
+        pod_name = pods_list.items[0].metadata.name
+        response = k8s_core_api.read_namespaced_pod_log(namespace=namespace, name=pod_name)
+    else:
+        response = "Could not find a log, is pod started?"
+            
     return str(response)
 
 def delete_analysis_jobs(analysis_id, namespace='cpp'):
@@ -113,7 +149,9 @@ def delete_analysis_jobs(analysis_id, namespace='cpp'):
     k8s_batch_api = kubernetes.client.BatchV1Api()
 
     label_selector = f"analysis_id={analysis_id}"
-    response = k8s_batch_api.delete_collection_namespaced_job(namespace=namespace, label_selector=label_selector)
+    response = k8s_batch_api.delete_collection_namespaced_job(namespace=namespace, label_selector=label_selector, propagation_policy='Foreground')
+
+    logging.debug("delete_analysis_jobs, response: " + str(response))
 
     return response
 

@@ -148,6 +148,7 @@ class DeleteAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=a
         logging.info("id: " + str(id))
         result1 = dbqueries.delete_analysis(id)
         result2 = str(kubeutils.delete_analysis_jobs(id))
+        #result3 = str(fileutils.delete_analysis_jobs(id))
 
         result = []
         result.append(result1)
