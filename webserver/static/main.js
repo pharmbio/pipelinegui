@@ -252,6 +252,9 @@ function drawImageAnalysisTable(rows){
   // Before drawing table add ("File-Links")
   rows = addFileLinksColumn(rows)
 
+  // Truncate "result" column 
+  rows = truncateColumn(rows, "result", 100);
+
   drawTable(rows, "image_analyses-table-div");
 }
 
@@ -295,6 +298,9 @@ function addLinkToBarcodeColumn(rows){
 function drawImageSubAnalysisTable(rows){
 
   console.log("Inside drawImageSubAnalysisTable");
+
+  // Truncate "result" column 
+  rows = truncateColumn(rows, "result", 100);
 
   drawTable(rows, "image_sub_analyses-table-div");
 
@@ -416,6 +422,34 @@ function addFileLinksColumn(rows){
   }
   
   return rows;
+}
+
+function truncateColumn(rows, column_name, trunc_length){
+  let cols = rows[0];
+  column_index = cols.indexOf(column_name);
+
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+    console.log("nRow:", nRow);
+    
+    let content = rows[nRow][column_index];
+    if(typeof content == 'object'){
+      content = JSON.stringify(content);
+    }
+
+    if(content === "null"){
+      content = "";
+    }
+
+    if(content != null && content.length > trunc_length){
+      content = content.substring(0, trunc_length);
+      content += "....."
+    }
+
+    rows[nRow][column_index] = content;
+  }
+
+  return rows;
+
 }
 
 function drawTable(rows, divname) {

@@ -4,7 +4,7 @@
   "DB_PORT": 5432,
   "DB_HOSTNAME": "imagedb",
   "DB_NAME": "imagedb",
-  "DB_ADMIN_URL": "https://adminer-imagedb.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public",
+  "DB_ADMIN_URL": "https://imagedb-adminer.devserver.pharmb.io/?pgsql=imagedb&username=postgres&db=imagedb&ns=public",
   "DEBUG": "True",
   "STATIC_RESULTS_DIR": "/cpp_work/results"
 }
