@@ -30,7 +30,7 @@ class DefaultTemplateHandler(tornado.web.RequestHandler): #pylint: disable=abstr
         """
         logging.debug(self.request.path)
 
-        self.render(self.request.path.strip('/'))
+        self.render(self.request.path.strip('/'), admin_db_url=pipelinegui_settings.DB_ADMIN_URL)
         #self.render('index.html')
 
 class IndexTemplateHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
