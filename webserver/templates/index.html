@@ -202,7 +202,7 @@
                 Admin
               </a>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownAdminer">
-                <a class="dropdown-item" href="{{ admin_db_url }}">Adminer</a>
+                <a class="dropdown-item" target="adminer" href="{{adminer_url}}">Adminer</a>
               </div>
             </li>
 
@@ -236,7 +236,7 @@
           <br>
           <h4>image_analyses</h4>
           <a target="adminer"
-            href="{{ admin_db_url }}/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=image_analyses">
+            href="{{ adminer_url }}/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=image_analyses">
             view image_analyses in database
           </a>
         </div>
@@ -248,7 +248,7 @@
                   <br>
                   <h4>image_sub_analyses</h4>
                   <a target="adminer"
-                    href="{{ admin_db_url }}/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=image_sub_analyses">
+                    href="{{ adminer_url }}/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=image_sub_analyses">
                     view image_sub_analyses in database
                   </a>
                 </div>
@@ -277,7 +277,7 @@
           <br>
           <h4>plate_acquisition</h4>
           <a target="adminer"
-            href="{{ admin_db_url }}/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=plate_acquisition">
+            href="{{ adminer_url }}/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=plate_acquisition">
             view plate_acquisition in database
           </a>
         </div>

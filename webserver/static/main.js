@@ -98,6 +98,7 @@ function apiGetJobLog(jobName) {
     .then(function (response) {
       if (response.status === 200) {
         response.json().then(function (json) {
+
           console.log('result', json);
           document.getElementById('logdiv').innerHTML = "<pre>" + json['result'] + "</pre>";
           $("#log-modal").modal();
@@ -317,7 +318,7 @@ function addNotebookLinkColumn(rows){
   // Define which column in result contains the result
   let result_col_index = cols.indexOf("result");
   
-  let base_url = "https://cpp-notebook-nogpu.k8s-prod.pharmb.io" + "/lab/tree" + "/mnt/cpp-pvc/";
+  let base_url = "https://cpp-notebook-nogpu.k8s-prod.pharmb.io" + "/lab/tree" + "/cpp_work/";
   
   // Start from row 1 (0 is headers)
   for (let nRow = 1; nRow < rows.length; nRow++) {

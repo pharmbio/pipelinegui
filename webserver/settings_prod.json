@@ -5,6 +5,7 @@
   "DB_PORT": 5432,
   "DB_HOSTNAME": "imagedb",
   "DB_NAME": "imagedb",
-  "DB_ADMIN_URL": "https://imagedb-adminer.k8s-prod.pharmb.io/?pgsql=imagedb-pg-postgresql.services.svc.cluster.local&username=postgres&db=imagedb&ns=public",
+  "ADMINER_URL": "https://imagedb-adminer.k8s-prod.pharmb.io/?pgsql=imagedb-pg-postgresql.services.svc.cluster.local&username=postgres&db=imagedb&ns=public",
+  "DEBUG": "False",
   "STATIC_RESULTS_DIR": "/cpp_work/results"
 }
