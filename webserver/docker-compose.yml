@@ -39,7 +39,8 @@ services:
       # --entrypoints.web.http.redirections.entryPoint.scheme=https
       # --entrypoints.websecure.address=:443
       # - traefik.frontend.auth.basic=${TRAEFIK_BASIC_AUTH? You need to specify env TRAEFIK_BASIC_AUTH, e.g. TRAEFIK_BASIC_AUTH=username:$blablsbskjfhbsjhslkfsjlkdslkjf/kljsd}
-  # env:
+    environment:
+      - DEVELOP=True
   #    - KUBECONFIG=/kube/config.yaml
 
     networks:

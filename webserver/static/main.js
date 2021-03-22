@@ -100,8 +100,12 @@ function apiGetJobLog(jobName) {
         response.json().then(function (json) {
 
           console.log('result', json);
-          document.getElementById('logdiv').innerHTML = "<pre>" + json['result'] + "</pre>";
-          $("#log-modal").modal();
+          //document.getElementById('logdiv').innerHTML = "<pre>" + json['result'] + "</pre>";
+          //$("#log-modal").modal();
+          let w = window.open("", "joblog");
+          w.document.open();
+          w.document.write("<pre>" + json['result'] + "</pre>");
+          w.document.close();
         });
       }
       else {
@@ -234,7 +238,44 @@ function drawJobsTable(rows){
   }
   
   drawTable(rows, "jobs-table-div")
+
+  drawJobStats(rows)
 }
+
+function drawJobStats(rows, divname) {
+
+    let cols = rows[0];
+  
+    // Calculate stats by looping rows
+    let active_col_index = cols.indexOf("ACTIVE");
+    let succeeded_col_index = cols.indexOf("SUCCEEDED");
+    let failed_col_index = cols.indexOf("FAILED");
+
+    let active = 0;
+    let succeeded = 0;
+    let failed = 0;
+
+    for (let nRow = 1; nRow < rows.length; nRow++) {
+
+      active +=  parseInt(rows[nRow][active_col_index]);
+      succeeded +=  parseInt(rows[nRow][succeeded_col_index]);
+      failed +=  parseInt(rows[nRow][failed_col_index]);
+  
+    }
+
+    let total = rows.length -1; // -1 because of Header row
+    let queued = total - active - succeeded - failed;
+
+    document.getElementById("n_total_jobs").textContent = total;
+    document.getElementById("n_active_jobs").textContent = active;
+    document.getElementById("n_succeeded_jobs").textContent = succeeded;
+    document.getElementById("n_queued_jobs").textContent = queued;
+    document.getElementById("n_failed_jobs").textContent = failed;
+
+    console.log("drawJobStats finished")
+  
+}
+ 
 
 // Notebook link
 // http(s)://<server:port>/<lab-location>/lab/tree/path/to/notebook.ipynb

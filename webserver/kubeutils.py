@@ -5,6 +5,17 @@ import yaml
 import base64
 import datetime
 
+
+def is_develop():
+    """
+    Check if the users has the develop env.var. set
+    """
+    develop = False
+    if os.environ.get('DEVELOP') and os.environ.get('DEVELOP') == "True":
+        develop = True
+
+    return develop
+
 def is_debug():
     """
     Check if the users has the debug env.var. set
@@ -15,13 +26,24 @@ def is_debug():
 
     return debug
 
+def get_namespace():
+    
+    if is_develop():
+        namespace = "cpp-debug"
+    else:
+        namespace = "cpp"
+
+    return namespace
+
+
 def init_kubernetes_connection():
     # load the kube config
     kubernetes.config.load_kube_config('/kube/config')
 
 
-def list_jobs(namespace='cpp'):
+def list_jobs():
     # list all jobs in namespace
+    namespace = get_namespace()
 
     init_kubernetes_connection()
     k8s_batch_api = kubernetes.client.BatchV1Api()
@@ -124,7 +146,9 @@ def getAge(created):
 
 
 
-def get_job_log(job_name, namespace='cpp'):
+def get_job_log(job_name):
+
+    namespace = get_namespace()
 
     init_kubernetes_connection()
     k8s_core_api = kubernetes.client.CoreV1Api()
@@ -142,8 +166,9 @@ def get_job_log(job_name, namespace='cpp'):
             
     return str(response)
 
-def delete_analysis_jobs(analysis_id, namespace='cpp'):
+def delete_analysis_jobs(analysis_id):
     # list all jobs in namespace
+    namespace = get_namespace()
 
     init_kubernetes_connection()
     k8s_batch_api = kubernetes.client.BatchV1Api()

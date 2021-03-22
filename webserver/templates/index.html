@@ -127,13 +127,12 @@
     html {
       font-size: 14px;
     }
-    
+
     td {
-      white-space: normal !important; 
+      white-space: normal !important;
       word-wrap: break-word;
       max-width: 300px;
     }
-
   </style>
 
 </head>
@@ -230,6 +229,18 @@
       <!-- Main form -->
       <form id='main-form' onsubmit='return false;'>
 
+        <!-- job-stats-->
+        <div class="container-fluid flex-fill overflow-auto">
+          <br>
+          <h4>job stats</h4>
+        </div>
+        <div id="job-stats-div" class="container-fluid flex-fill overflow-auto">
+          Total jobs: <span id="n_total_jobs">-</span>, 
+          Active: <span id="n_active_jobs">-</span>, 
+          Queued: <span id="n_queued_jobs">-</span>, 
+          Succeeded: <span id="n_succeeded_jobs">-</span>, 
+          Failed: <span id="n_failed_jobs">-</span>
+        </div>
 
         <!-- image_analyses table-->
         <div class="container-fluid flex-fill overflow-auto">
@@ -243,17 +254,17 @@
         <div id="image_analyses-table-div" class="container-fluid flex-fill overflow-auto">
         </div>
 
-                <!-- image_sub_analyses table-->
-                <div class="container-fluid flex-fill">
-                  <br>
-                  <h4>image_sub_analyses</h4>
-                  <a target="adminer"
-                    href="{{ adminer_url }}/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=image_sub_analyses">
-                    view image_sub_analyses in database
-                  </a>
-                </div>
-                <div id="image_sub_analyses-table-div" class="container-fluid flex-fill">
-                </div>
+        <!-- image_sub_analyses table-->
+        <div class="container-fluid flex-fill">
+          <br>
+          <h4>image_sub_analyses</h4>
+          <a target="adminer"
+            href="{{ adminer_url }}/?pgsql=imagedb&username=postgres&db=imagedb&ns=public&select=image_sub_analyses">
+            view image_sub_analyses in database
+          </a>
+        </div>
+        <div id="image_sub_analyses-table-div" class="container-fluid flex-fill">
+        </div>
 
         <!-- job table-->
         <div class="container-fluid flex-fill">
@@ -360,19 +371,19 @@
     </div>
   </div>
 
-    <!--Verification modal alert OK-->
-    <div class="modal" id="alert-modal">
-      <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-          <div class="modal-header bg-success">
-            <h5 class="modal-title"></h5>
-          </div>
-          <div class="modal-body" id="alert-modal-body-div">
-            Verification OK
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+  <!--Verification modal alert OK-->
+  <div class="modal" id="alert-modal">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header bg-success">
+          <h5 class="modal-title"></h5>
+        </div>
+        <div class="modal-body" id="alert-modal-body-div">
+          Verification OK
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
 
   <!-- Modal dialog "Errormessage.." -->
   <div class="modal" id="error-modal" tabindex="1" role="dialog" aria-labelledby="errormodalLabel" aria-hidden="true">
