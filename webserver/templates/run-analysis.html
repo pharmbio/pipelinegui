@@ -253,6 +253,29 @@
 
         </div>
 
+
+                <!-- Toolbar -->
+                <div id="toolbar-div" class="container-fluid mt-2 mb-2">
+
+                  <div class="input-group align-bottom">
+        
+                    <!-- Analysis name selector -->
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="cellprofiler_version-select">CP-version:</label>
+                    </div>
+                    <select name="cellprofiler_version-select" class="form-control" style="max-width: 300px;"
+                      id="cellprofiler_version-select">
+                      <option value="v4.0.7">v4.0.7</option>
+                      <option value="v4.2.1">v4.2.1</option>
+                    </select>
+        
+        
+                  </div>
+        
+                </div>
+                <!-- end Toolbar -->
+
+
         <!-- Toolbar -->
         <div id="toolbar-div" class="container-fluid mt-2 mb-2">
 
@@ -267,20 +290,22 @@
             <input class="form-control" style="max-width: 200px;" name="plate_acq-input" id="plate_acq-input">
             </input>
 
-            <label class="input-group-text ml-2"> OR </label>
-
-            <!-- Analysis id input -->
             <div class="input-group-prepend ml-2">
-              <label class="input-group-text" for="indata_analysis_id-input">Analysis id (not implemented yet):</label>
+              <label class="input-group-text" for="well_filter-input">Well filter, e.g. C03,C04,E03 (optional):</label>
             </div>
-            <input class="form-control" style="max-width: 100px;" name="indata_analysis_id-input" id="plate_acq-input">
+            <input class="form-control" style="max-width: 200px;" name="well_filter-input" id="well_filter-input">
+            </input>
+
+            <div class="input-group-prepend ml-2">
+              <label class="input-group-text" for="site_filter-input">Site filter, e.g. 1,2,3,4 (optional):</label>
+            </div>
+            <input class="form-control" style="max-width: 200px;" name="site_filter-input" id="site_filter-input">
             </input>
 
           </div>
 
         </div>
         <!-- end Toolbar -->
-
 
         <!-- Toolbar -->
         <div id="toolbar-div" class="container-fluid mt-2 mb-2">
@@ -440,25 +465,6 @@
 
     // jQuery init methods
     $(document).ready(function () {
-
-      // Create disabled slider to be updated later
-      $("#timepoint-slider").ionRangeSlider({
-        //skin: "modern",
-        type: "single",
-        min: 1,
-        max: 1,
-        from: 1,
-        disable: true,
-        onChange: function (data) {
-          elem = document.getElementById('timepoint-select');
-          let newVal = data.from - 1;
-          // Check first to avoid recursion
-          if (elem.selectedIndex != newVal) {
-            elem.selectedIndex = data.from - 1;
-            elem.onchange();
-          }
-        }
-      });
 
       // Attach event listeners
       $("#analysis_pipelines-select").change(function () {

@@ -169,12 +169,16 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         logging.debug("%r %s" % (self.request, self.request.body.decode()))
 
         plate_acquisition = self.get_argument("plate_acq-input")
-        indata_analysis_id = self.get_argument("indata_analysis_id-input")
+        #indata_analysis_id = self.get_argument("indata_analysis_id-input")
         analysis_pipeline_name = self.get_argument("analysis_pipelines-select")
+        cellprofiler_version = self.get_argument("cellprofiler_version-select")
+
+        well_filter = self.get_argument("well_filter-input")
+        site_filter = self.get_argument("site_filter-input")
         
         #logging.debug("form_data:" + str(form_data))
 
-        results = dbqueries.submit_analysis(plate_acquisition, analysis_pipeline_name)
+        results = dbqueries.submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_version, well_filter, site_filter)
         logging.debug(results)
         self.finish({'results':results})
 

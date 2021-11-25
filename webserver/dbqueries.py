@@ -154,7 +154,7 @@ def save_analysis_pipelines(name, data):
         if conn is not None:
             conn.close()
 
-def submit_analysis(plate_acquisition, analysis_pipeline_name):
+def submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_version, well_filter, site_filter):
 
     logging.debug("save_analysis_pipelines")
 
@@ -182,6 +182,21 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name):
         cursor.execute(query, (plate_acquisition, pipeline_name,))
         analysis_id = cursor.fetchone()[0]
         cursor.close()
+
+        # Add cellprofiler version info to sub_analysis
+        for sub_analysis in pipeline_meta:
+            sub_analysis['cp_version'] = cellprofiler_version
+        
+        # Add well filter info to sub_analysis
+        if well_filter.strip():
+            for sub_analysis in pipeline_meta:
+                sub_analysis['well_filter'] = well_filter.split(',')
+        
+         # Add site filter info to sub_analysis
+        if site_filter.strip():
+            for sub_analysis in pipeline_meta:
+                sub_analysis['site_filter'] = site_filter.split(',')
+
 
         depends_on_id = []
         for sub_analysis in pipeline_meta:
