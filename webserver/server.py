@@ -58,6 +58,7 @@ ROUTES = [
           (r'/api/analysis-pipelines/delete/(?P<name>.+)', query_handlers.DeleteAnalysisPipelinesQueryHandler),
           (r'/api/analysis-pipelines/(?P<name>.+)*', query_handlers.ListAnalysisPipelinesQueryHandler),
           (r'/api/analysis/delete/(?P<id>.+)', query_handlers.DeleteAnalysisQueryHandler),
+          (r'/api/analysis/update_meta', query_handlers.UpdateMetaQueryHandler),
           (r'/index.html', IndexTemplateHandler),
           (r'/', IndexTemplateHandler),
          ]

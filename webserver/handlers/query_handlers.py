@@ -131,6 +131,26 @@ class ListJobLogHandler(tornado.web.RequestHandler): #pylint: disable=abstract-m
         logging.debug(result)
         self.finish({'result':result})
 
+class UpdateMetaQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+    
+    """
+    The query handler handles form posts and returns list of results
+    """
+    def post(self):
+        """Handles POST requests.
+        """
+        
+        # log all input parameters
+        logging.debug("%r %s" % (self.request, self.request.body.decode()))
+
+        id = self.get_argument("edit-meta-analysis-id-input")
+        meta = self.get_argument("edit-meta-input")
+
+        logging.debug("meta:" + str(meta))
+
+        result = dbqueries.update_analysis_meta(id, meta)
+        
+        self.finish({'result':result})
 
 
 class DeleteAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method

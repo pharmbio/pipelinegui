@@ -352,6 +352,48 @@
   </div>
 
 
+    <!-- Modal dialog "Edit meta ...." -->
+    <div class="modal" id="edit-meta-modal" tabindex="-1" role="dialog" aria-labelledby="edit-meta-modal"
+    aria-hidden="true">
+    <div class="modal-dialog " role="document">
+      <div class="modal-content">
+
+        <form id='edit-meta-form' onsubmit='return false;'>
+        
+        <div class="modal-header">
+          <h5 class="modal-title" id="edit-meta-modal">Edit meta</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+
+          <div class="form-group">
+            <label for="edit-meta-analysis-id-input" class="col-form-label">Analysis id:</label>
+            <input readonly type="text" class="form-control" name="edit-meta-analysis-id-input" id="edit-meta-analysis-id-input">
+            <label for="edit-meta-presets" class="col-form-label">Presets:</label>
+            <select id="edit-meta-presets" onchange="editMetaPresetsChanged()">
+              <option value=''>{"type":"cp-qc", "approved":"yes", "comment":""}</option>
+              <option value=''>{"type":"cp-qc", "approved":"no", "comment":""}</option>
+              <option value=''>{"type":"cp-features", "approved":"yes", "comment":""}</option>
+              <option value=''>{"type":"cp-features", "approved":"no", "comment":""}</option>
+            </select>
+            <!--<label for="edit-meta-input" class="col-form-label">Meta:</label>-->
+            <textarea rows="5" cols="40" class="form-control" name="edit-meta-input" id="edit-meta-input"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" onclick="apiUpdateMeta()">Update meta</button>
+        </div>
+      </div>
+
+    </form>
+
+    </div>
+  </div>
+
+
   <!-- Modal dialog "Logmessage.." -->
   <div class="modal" id="log-modal" tabindex="1" role="dialog" aria-labelledby="logmodalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">

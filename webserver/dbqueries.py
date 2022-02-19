@@ -285,3 +285,38 @@ def delete_from_db(query, values):
     finally:
         if conn is not None:
             conn.close()
+
+
+def update_analysis_meta(analysis_id, analysis_meta):
+
+    logging.debug("update_analysis_meta")
+
+    conn = None
+    try:
+
+        conn = get_connection()
+
+        # Build query
+        query = ("UPDATE image_analyses"
+                 " SET meta = %s "
+                 " WHERE id = %s")
+
+        logging.info("query" + str(query))
+
+        cursor = conn.cursor()
+        cursor.execute(query, (analysis_meta, analysis_id))
+
+        updated_rows_count = cursor.rowcount
+
+        # Commit the changes to the database
+        conn.commit()
+        cursor.close()
+        
+        return {"rows updated": updated_rows_count}
+
+    except (Exception, psycopg2.DatabaseError) as err:
+        logging.exception("Message")
+        raise err
+    finally:
+        if conn is not None:
+            conn.close()

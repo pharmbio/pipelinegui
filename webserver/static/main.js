@@ -228,13 +228,17 @@ function drawJobsTable(rows){
   cols.push("log")
 
   let name_col_index = cols.indexOf("NAME");
+  let status_col_index = cols.indexOf("STATUS");
 
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
-    let job_name = rows[nRow][name_col_index];
-    let new_cell_content = "<a href='#' onclick='viewJobLog(\"" + job_name + "\");'>Show log</a>"
-    rows[nRow].push(new_cell_content);
-
+    // Only show failed jobs
+    let status = rows[nRow][status_col_index];
+    if(status == 'Failed'){
+      let job_name = rows[nRow][name_col_index];
+      let new_cell_content = "<a href='#' onclick='viewJobLog(\"" + job_name + "\");'>Show log</a>"
+      rows[nRow].push(new_cell_content);
+    }
   }
   
   drawTable(rows, "jobs-table-div")
@@ -397,16 +401,19 @@ function addControlsColumn(rows){
 
   // Define which column in result contains the id (-1 because new Controls is inserted in front)
   let id_col_index = cols.indexOf("id") - 1;
+  let id_col_meta = cols.indexOf("meta") - 1;
 
   // Create new cell in all rows
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
     let id = rows[nRow][id_col_index];
+    let meta = JSON.stringify(rows[nRow][id_col_meta]);
 
     let deleteLink = "<a href='#' onClick='confirmDeleteAnalysis(" + id + ");'>Delete</a>";
     let stopLink = "<a href='#' onClick='confirmStopAnalysis(" + id + ");'>Stop</a>";
     let restartLink = "<a href='#' onClick='confirmRestartAnalysis(" + id + ");'>Restart</a>";
-    let new_cell_content = restartLink + "<br>" + deleteLink + "<br>" + stopLink;
+    let editMetaLink = "<a href='#' onClick='updateMeta(" + id + "," + meta + ");'>Edit meta</a>";
+    let new_cell_content = restartLink + "<br>" + deleteLink + "<br>" + stopLink + "<br>" + editMetaLink;
 
     // insert cell first
     rows[nRow].splice(0,0,new_cell_content);
@@ -880,6 +887,60 @@ function confirmDeleteAnalysis(id){
   $("#delete-analysis-modal").modal();
 
 }
+
+function updateMeta(id, meta){
+  document.getElementById("edit-meta-analysis-id-input").value = id;
+  document.getElementById("edit-meta-input").value = JSON.stringify(meta, null, 2);
+
+  $("#edit-meta-modal").modal();
+
+}
+
+function apiUpdateMeta(){
+
+  let formData = new FormData(document.getElementById('edit-meta-form'));
+
+
+  fetch('/api/analysis/update_meta', {
+    method: 'POST',
+    body: formData
+    })
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+  
+            location.reload();
+            $("#edit-meta-modal").modal('hide');
+            showOKModal("Meta updated");
+          });
+        }
+        else {
+          response.text().then(function (text) {
+            displayModalServerError(response.status, text);
+          });
+        }
+  
+      })
+      .catch(function (error) {
+        console.log(error);
+        displayModalError(error);
+      });
+}
+
+
+function editMetaPresetsChanged(){
+  let elem = document.getElementById("edit-meta-presets");
+
+  let preset_text = elem.options[elem.selectedIndex].text;
+  console.log("preset_text",preset_text);
+  var json_text = JSON.parse(preset_text);
+  console.log("json_text",json_text)
+  let pretty_text = JSON.stringify(json_text, null, 2);
+
+  document.getElementById("edit-meta-input").value = pretty_text;
+}
+
+
 
 
 function initIndexPage() {
