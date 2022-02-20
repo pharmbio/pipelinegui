@@ -230,13 +230,16 @@ function drawJobsTable(rows){
 
   // Remove rows that are not failed or error
   let status_col_index = cols.indexOf("STATUS");
-  for (let nRow = 1; nRow < rows.length; nRow++) {
+  for (let nRow = rows.length -1; nRow > 0; nRow--) {
     let status = rows[nRow][status_col_index];
-    if(status != 'Failed' && status != 'Error'){
+    if(status == 'Failed' || status != 'Error'){
+      // Keep row
+    }
+    else{
+      // delete row
       rows.splice(nRow, 1);
     }
   }
-
 
   // Add show log column
   let name_col_index = cols.indexOf("NAME");
