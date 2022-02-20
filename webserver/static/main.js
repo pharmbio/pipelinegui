@@ -232,7 +232,7 @@ function drawJobsTable(rows){
   let status_col_index = cols.indexOf("STATUS");
   for (let nRow = rows.length -1; nRow > 0; nRow--) {
     let status = rows[nRow][status_col_index];
-    if(status == 'Failed' || status != 'Error'){
+    if(status == 'Failed' || status == 'Error'){
       // Keep row
     }
     else{
