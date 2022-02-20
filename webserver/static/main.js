@@ -221,12 +221,13 @@ function removeChildren(domObject) {
 
 function drawJobsTable(rows){
 
-  // Before drawing table add ("Show logs column")
+  // copy array
+  rows = [...rows];
 
+  // Before drawing table add ("Show logs column")
   // Add new column header to end of header row
   let cols = rows[0];
   cols.push("log")
-
 
   // Remove rows that are not failed or error
   let status_col_index = cols.indexOf("STATUS");
