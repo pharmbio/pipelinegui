@@ -227,18 +227,23 @@ function drawJobsTable(rows){
   let cols = rows[0];
   cols.push("log")
 
-  let name_col_index = cols.indexOf("NAME");
+
+  // Remove rows that are not failed or error
   let status_col_index = cols.indexOf("STATUS");
-
   for (let nRow = 1; nRow < rows.length; nRow++) {
-
-    // Only show failed jobs
     let status = rows[nRow][status_col_index];
-    if(status == 'Failed'){
-      let job_name = rows[nRow][name_col_index];
-      let new_cell_content = "<a href='#' onclick='viewJobLog(\"" + job_name + "\");'>Show log</a>"
-      rows[nRow].push(new_cell_content);
+    if(status != 'Failed' && status != 'Error'){
+      rows.splice(nRow, 1);
     }
+  }
+
+
+  // Add show log column
+  let name_col_index = cols.indexOf("NAME");
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+    let job_name = rows[nRow][name_col_index];
+    let new_cell_content = "<a href='#' onclick='viewJobLog(\"" + job_name + "\");'>Show log</a>"
+    rows[nRow].push(new_cell_content);
   }
   
   drawTable(rows, "jobs-table-div")
