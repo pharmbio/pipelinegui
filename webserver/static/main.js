@@ -221,6 +221,9 @@ function removeChildren(domObject) {
 
 function drawJobsTable(rows){
 
+  // First (before manipulating rows draw stats)
+  drawJobStats(rows)
+
   // copy array
   rows = [...rows];
 
@@ -251,8 +254,6 @@ function drawJobsTable(rows){
   }
   
   drawTable(rows, "jobs-table-div")
-
-  drawJobStats(rows)
 }
 
 function drawJobStats(rows, divname) {
