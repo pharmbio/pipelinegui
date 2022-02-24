@@ -12,7 +12,7 @@ def get_connection():
 def list_plate_acquisitions():
 
     query = ("SELECT * "
-             "FROM plate_acquisition "
+             "FROM plate_acquisition_v1 "
              "ORDER BY id DESC "
              "LIMIT 1000")
 
