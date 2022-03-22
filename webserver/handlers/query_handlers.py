@@ -10,6 +10,7 @@ import tornado.web
 import dbqueries
 import kubeutils
 import fileutils
+import pipelineutils
 
 
 class ListPlateAcqHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
@@ -217,10 +218,12 @@ class SaveAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
         meta = self.get_argument("analysis_pipeline-meta")
         name = self.get_argument("analysis_pipeline-name")
         
-        #logging.debug("form_data:" + str(form_data))
-
-        results = dbqueries.save_analysis_pipelines(name, meta)
-        logging.debug(results)
+        verification = pipelineutils.veify_analysis_pipeline_meta(meta)
+        if verification != 'OK':
+            results = verification
+        else:  
+            results = dbqueries.save_analysis_pipelines(name, meta)
+                    
         self.finish({'results':results})
 
 
