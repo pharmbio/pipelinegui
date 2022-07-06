@@ -252,14 +252,14 @@ function drawJobsTable(rows){
     let new_cell_content = "<a href='#' onclick='viewJobLog(\"" + job_name + "\");'>Show log</a>"
     rows[nRow].push(new_cell_content);
   }
-  
+
   drawTable(rows, "jobs-table-div")
 }
 
 function drawJobStats(rows, divname) {
 
     let cols = rows[0];
-  
+
     // Calculate stats by looping rows
     let active_col_index = cols.indexOf("ACTIVE");
     let succeeded_col_index = cols.indexOf("SUCCEEDED");
@@ -274,7 +274,7 @@ function drawJobStats(rows, divname) {
       active +=  parseInt(rows[nRow][active_col_index]);
       succeeded +=  parseInt(rows[nRow][succeeded_col_index]);
       failed +=  parseInt(rows[nRow][failed_col_index]);
-  
+
     }
 
     let total = rows.length -1; // -1 because of Header row
@@ -287,9 +287,9 @@ function drawJobStats(rows, divname) {
     document.getElementById("n_failed_jobs").textContent = failed;
 
     console.log("drawJobStats finished")
-  
+
 }
- 
+
 
 // Notebook link
 // http(s)://<server:port>/<lab-location>/lab/tree/path/to/notebook.ipynb
@@ -308,7 +308,7 @@ function drawImageAnalysisTable(rows){
   // Before drawing table add ("File-Links")
   rows = addFileLinksColumn(rows)
 
-  // Truncate "result" column 
+  // Truncate "result" column
   rows = truncateColumn(rows, "result", 100);
 
   drawTable(rows, "image_analyses-table-div");
@@ -330,9 +330,9 @@ function addLinkToBarcodeColumn(rows){
 
   // Define which column is barcode column
   let barcode_col_index = cols.indexOf("plate_barcode");
-  
+
   let base_url = "https://imagedb.k8s-prod.pharmb.io/?";
-  
+
   // Start from row 1 (0 is headers)
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
@@ -355,7 +355,7 @@ function drawImageSubAnalysisTable(rows){
 
   console.log("Inside drawImageSubAnalysisTable");
 
-  // Truncate "result" column 
+  // Truncate "result" column
   rows = truncateColumn(rows, "result", 100);
 
   drawTable(rows, "image_sub_analyses-table-div");
@@ -372,9 +372,9 @@ function addNotebookLinkColumn(rows){
 
   // Define which column in result contains the result
   let result_col_index = cols.indexOf("result");
-  
+
   let base_url = "https://cpp-notebook-nogpu.k8s-prod.pharmb.io" + "/lab/tree" + "/cpp_work/";
-  
+
   // Start from row 1 (0 is headers)
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
@@ -382,20 +382,20 @@ function addNotebookLinkColumn(rows){
     console.log("result_list", result);
 
     let cell_contents = "";
-   
+
     if(result && result.job_folder){
 
       let link_url = base_url + result.job_folder
 
 
        // results/384-P000014-helgi-U2OS-24h-L1-copy2/60/15
- 
+
        cell_contents = "<a target='notebook' href='" + link_url + "'>Link</a>"
 
     }
-    
+
     rows[nRow].push(cell_contents);
-  
+
   }
 
   return rows;
@@ -443,13 +443,13 @@ function basename(str) {
 function addFileLinksColumn(rows){
   console.log("Inside addFileLinksColumn");
 
-  // Add header to new cell 
+  // Add header to new cell
   let cols = rows[0];
   result_col_index = cols.indexOf("result");
 
   cols.splice(result_col_index + 1, 0, "file_list-links");
   console.log("rows.length", rows.length);
-  
+
   // Create new cell in all rows
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
@@ -479,7 +479,7 @@ function addFileLinksColumn(rows){
     rows[nRow].splice(result_col_index + 1,0,cell_contents);
 
   }
-  
+
   return rows;
 }
 
@@ -489,7 +489,7 @@ function truncateColumn(rows, column_name, trunc_length){
 
   for (let nRow = 1; nRow < rows.length; nRow++) {
     console.log("nRow:", nRow);
-    
+
     let content = rows[nRow][column_index];
     if(typeof content == 'object'){
       content = JSON.stringify(content);
@@ -559,9 +559,9 @@ function drawTable(rows, divname) {
         content = content.substring(0, TRUNCATE_LEN);
         content += "....."
       }
-      
+
       cell.innerHTML = content;
-      
+
       //cell.className = 'tableCell';
       rowElement.appendChild(cell);
     }
@@ -724,7 +724,7 @@ function setAnalysisPipelinesSelection(analysisPineline) {
 */
 
 function redrawSelectedAnalysisPipeline() {
-  
+
   let elem = document.getElementById('analysis_pipelines-select');
   let pipelineName = elem.options[elem.selectedIndex].value;
   console.log("pipelineName", pipelineName);
@@ -918,7 +918,7 @@ function apiUpdateMeta(){
     .then(function (response) {
       if (response.status === 200) {
         response.json().then(function (json) {
-  
+
             location.reload();
             $("#edit-meta-modal").modal('hide');
             showOKModal("Meta updated");
@@ -929,7 +929,7 @@ function apiUpdateMeta(){
             displayModalServerError(response.status, text);
           });
         }
-  
+
       })
       .catch(function (error) {
         console.log(error);

@@ -27,7 +27,7 @@ class ListPlateAcqHandler(tornado.web.RequestHandler): #pylint: disable=abstract
 
         result = dbqueries.list_plate_acquisitions()
 
-        logging.debug(result)
+        #logging.debug(result)
         self.finish({'result':result})
 
 class ListImageAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
@@ -44,7 +44,7 @@ class ListImageAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=abs
 
         result = dbqueries.list_image_analyses()
 
-        logging.debug(result)
+        #logging.debug(result)
         self.finish({'result':result})
 
 class ListImageSubAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
@@ -133,14 +133,14 @@ class ListJobLogHandler(tornado.web.RequestHandler): #pylint: disable=abstract-m
         self.finish({'result':result})
 
 class UpdateMetaQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
-    
+
     """
     The query handler handles form posts and returns list of results
     """
     def post(self):
         """Handles POST requests.
         """
-        
+
         # log all input parameters
         logging.debug("%r %s" % (self.request, self.request.body.decode()))
 
@@ -150,7 +150,7 @@ class UpdateMetaQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstr
         logging.debug("meta:" + str(meta))
 
         result = dbqueries.update_analysis_meta(id, meta)
-        
+
         self.finish({'result':result})
 
 
@@ -174,7 +174,7 @@ class DeleteAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=a
         result = []
         result.append(result1)
         result.append(result2)
-        
+
         logging.debug(result)
         self.finish({'result':result})
 
@@ -185,21 +185,25 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
     def post(self):
         """Handles POST requests.
         """
-        
+
         # log all input parameters
         logging.debug("%r %s" % (self.request, self.request.body.decode()))
 
-        plate_acquisition = self.get_argument("plate_acq-input")
+        plate_acq_input = self.get_argument("plate_acq-input")
         #indata_analysis_id = self.get_argument("indata_analysis_id-input")
         analysis_pipeline_name = self.get_argument("analysis_pipelines-select")
         cellprofiler_version = self.get_argument("cellprofiler_version-select")
 
         well_filter = self.get_argument("well_filter-input")
         site_filter = self.get_argument("site_filter-input")
-        
+
         #logging.debug("form_data:" + str(form_data))
 
-        results = dbqueries.submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_version, well_filter, site_filter)
+        plate_acqs_list = pipelineutils.parse_string_of_num_and_ranges(plate_acq_input)
+        for plate_acquisition in plate_acqs_list:
+            results = dbqueries.submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_version, well_filter, site_filter)
+            if results != "OK":
+                break
         logging.debug(results)
         self.finish({'results':results})
 
@@ -211,19 +215,19 @@ class SaveAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
     def post(self):
         """Handles POST requests.
         """
-        
+
         # log all input parameters
         logging.debug("%r %s" % (self.request, self.request.body.decode()))
 
         meta = self.get_argument("analysis_pipeline-meta")
         name = self.get_argument("analysis_pipeline-name")
-        
+
         verification = pipelineutils.veify_analysis_pipeline_meta(meta)
         if verification != 'OK':
             results = verification
-        else:  
+        else:
             results = dbqueries.save_analysis_pipelines(name, meta)
-                    
+
         self.finish({'results':results})
 
 
@@ -244,6 +248,6 @@ class ListAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
         logging.debug(result)
         self.finish({'result':result})
 
-        
+
 
 
