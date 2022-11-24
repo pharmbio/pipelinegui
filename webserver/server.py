@@ -13,7 +13,7 @@ import handlers.query_handlers as query_handlers
 import settings as pipelinegui_settings
 
 SETTINGS = {
-    'debug': True,
+    'debug': False,
     'develop': True,
     'template_path':'templates/',
     'xsrf_cookies': False, # Anders disabled this - TODO enable again....maybe...
@@ -41,13 +41,12 @@ class IndexTemplateHandler(tornado.web.RequestHandler): #pylint: disable=abstrac
 
         self.render('index.html', adminer_url=pipelinegui_settings.ADMINER_URL)
 
-
 ROUTES = [
           (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), 'static')}),
-          (r'/results/(.*)', tornado.web.StaticFileHandler, {'path': pipelinegui_settings.STATIC_RESULTS_DIR}),
-          (r'/api/list/plate_acquisition/(?P<limit>.+)/(?P<sortorder>.+)', query_handlers.ListPlateAcqHandler),
-          (r'/api/list/image_analyses/(?P<limit>.+)/(?P<sortorder>.+)', query_handlers.ListImageAnalysesHandler),
-          (r'/api/list/image_sub_analyses/(?P<limit>.+)/(?P<sortorder>.+)', query_handlers.ListImageSubAnalysesHandler),
+          (r'/cpp_work/(.*)', tornado.web.StaticFileHandler, {'path': pipelinegui_settings.STATIC_CPP_DIR}),
+          (r'/api/list/plate_acquisition/(?P<limit>.+)', query_handlers.ListPlateAcqHandler),
+          (r'/api/list/image_analyses/(?P<limit>.+)', query_handlers.ListImageAnalysesHandler),
+          (r'/api/list/image_sub_analyses/(?P<limit>.+)', query_handlers.ListImageSubAnalysesHandler),
           (r'/api/list/jobs', query_handlers.ListJobsHandler),
           (r'/api/list/joblog/(?P<job_name>.+)', query_handlers.ListJobLogHandler),
           (r'/api/list/pipelinefiles', query_handlers.ListPipelinefilesHandler),
@@ -59,19 +58,21 @@ ROUTES = [
           (r'/api/analysis-pipelines/(?P<name>.+)*', query_handlers.ListAnalysisPipelinesQueryHandler),
           (r'/api/analysis/delete/(?P<id>.+)', query_handlers.DeleteAnalysisQueryHandler),
           (r'/api/analysis/update_meta', query_handlers.UpdateMetaQueryHandler),
+          (r'/error-log/(?P<analysis_id>.+)', query_handlers.ErrorLogHandler),
+          (r'/segmentation/(?P<analysis_id>.+)', query_handlers.SegmentationHandler),
           (r'/index.html', IndexTemplateHandler),
           (r'/', IndexTemplateHandler),
          ]
-         
+
 if __name__ == '__main__':
 
     tornado.log.enable_pretty_logging()
 
     logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                         datefmt='%H:%M:%S',
-                        level=logging.DEBUG)
+                        level=logging.INFO)
 
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
 
     APP = tornado.web.Application(ROUTES, **SETTINGS)
     APP.listen(8080)

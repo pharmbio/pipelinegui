@@ -4,6 +4,7 @@ This is where most of the logic goes.
 """
 import json
 import logging
+import os
 
 import tornado.web
 
@@ -20,7 +21,7 @@ class ListPlateAcqHandler(tornado.web.RequestHandler): #pylint: disable=abstract
         body = "application/json"
         self.set_header(header, body)
 
-    def get(self, limit, sortorder):
+    def get(self, limit):
         """Handles GET requests.
         """
         logging.info("inside ListPlateAcqHandler, limit=" + str(limit))
@@ -37,12 +38,12 @@ class ListImageAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=abs
         body = "application/json"
         self.set_header(header, body)
 
-    def get(self, limit, sortorder):
+    def get(self, limit):
         """Handles GET requests.
         """
         logging.info("inside ListImageAnalysesHandler, limit=" + str(limit))
 
-        result = dbqueries.list_image_analyses()
+        result = dbqueries.list_image_analyses(limit)
 
         #logging.debug(result)
         self.finish({'result':result})
@@ -54,14 +55,14 @@ class ListImageSubAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=
         body = "application/json"
         self.set_header(header, body)
 
-    def get(self, limit, sortorder):
+    def get(self, limit):
         """Handles GET requests.
         """
         logging.info("inside ListImageSubAnalysesHandler, limit=" + str(limit))
 
-        result = dbqueries.list_image_sub_analyses()
+        result = dbqueries.list_image_sub_analyses(limit)
 
-        logging.debug(result)
+        #logging.debug(result)
         self.finish({'result':result})
 
 class ListJobsHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
@@ -78,7 +79,7 @@ class ListJobsHandler(tornado.web.RequestHandler): #pylint: disable=abstract-met
 
         result = kubeutils.list_jobs()
 
-        logging.debug(result)
+        #logging.debug(result)
         self.finish({'result':result})
 
 class ListPipelinefilesHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
@@ -146,6 +147,7 @@ class UpdateMetaQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstr
 
         id = self.get_argument("edit-meta-analysis-id-input")
         meta = self.get_argument("edit-meta-input")
+
 
         logging.debug("meta:" + str(meta))
 
@@ -249,5 +251,90 @@ class ListAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
         self.finish({'result':result})
 
 
+class ErrorLogHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
 
+    def get(self, analysis_id):
+        """Handles GET requests.
+        """
+
+        logging.info(f"ErrorLogHandler, id: {analysis_id}")
+
+        analysis_info = dbqueries.select_image_analyses(analysis_id)
+
+        sub_analyses = dbqueries.select_image_sub_analyses(analysis_id)
+
+        logging.info(sub_analyses)
+
+        self.render('error-log.html', analysis_id=analysis_id,
+                                      analysis_info=analysis_info,
+                                      sub_analyses=sub_analyses)
+
+
+IMAGE_EXTENSIONS = (".tif", ".tiff", ".png", ".jpg", ".jpeg", ".bmp")
+def get_all_image_files(dir):
+    # get all files
+    logging.info(dir)
+
+    image_files = []
+    for file in os.listdir(dir):
+        if file.lower().endswith( IMAGE_EXTENSIONS ):
+            absolute_file = os.path.join(dir, file)
+            image_files.append(absolute_file)
+
+    return image_files
+
+def drawImages(images):
+
+    out = []
+
+    for image in images:
+
+        out.append('<br>')
+        out.append(f'{os.path.basename(image)}')
+        out.append('<br>')
+        out.append(f'<img src="{image}" alt="{image}" width=1000 />')
+        out.append('<br>')
+
+    return "".join(out)
+
+
+class SegmentationHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+
+    def get(self, analysis_id):
+        """Handles GET requests.
+        """
+
+        limit = 20
+
+        logging.info(f"SegmentationHandler, id: {analysis_id}")
+
+        logging.info(f"Limit, id: {analysis_id}")
+
+        analysis_info = dbqueries.select_image_analyses(analysis_id)
+
+        selection = []
+        if len(analysis_info) > 0:
+            row=analysis_info[0]
+            result = row['result']
+
+            job_folder = result["job_folder"]
+            (f'job folder { job_folder }' )
+
+            img_folder = f'/cpp_work/{job_folder}/img/objnumber/'
+
+            files = get_all_image_files(img_folder)
+
+            selection = files[0:limit]
+
+        else:
+            logging.info("do nothing")
+
+
+        images = drawImages(selection)
+
+        logging.info(f"images {images}")
+
+
+        self.render('segmentation.html', analysis_id=analysis_id,
+                                         images=images)
 

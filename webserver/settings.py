@@ -15,5 +15,5 @@ with open(conf_file) as json_file:
   ADMINER_URL = os.getenv("ADMINER_URL", js_conf["ADMINER_URL"])
 
   DEBUG = os.getenv("DEBUG", js_conf["DEBUG"])
-  
-  STATIC_RESULTS_DIR = os.getenv("STATIC_RESULTS_DIR", js_conf["STATIC_RESULTS_DIR"])
+
+  STATIC_CPP_DIR = os.getenv("STATIC_CPP_DIR", js_conf["STATIC_CPP_DIR"])

@@ -36,10 +36,9 @@ class Table{
 
 function apiCreatePlateAcqTable() {
 
-  let limit = 1000;
-  let sortOrder = "ASCENDING"
+  let limit = 200;
 
-  fetch('/api/list/plate_acquisition/' + limit + "/" + sortOrder)
+  fetch('/api/list/plate_acquisition/' + limit)
 
     .then(function (response) {
       if (response.status === 200) {
@@ -155,10 +154,9 @@ function apiCreatePipelineFilesTable() {
 
 function apiCreateImageAnalysesTable() {
 
-  let limit = 1000;
-  let sortOrder = "ASCENDING"
+  let limit = 200;
 
-  fetch('/api/list/image_analyses/' + limit + "/" + sortOrder)
+  fetch('/api/list/image_analyses/' + limit )
 
     .then(function (response) {
       if (response.status === 200) {
@@ -185,10 +183,9 @@ function apiCreateImageAnalysesTable() {
 
 function apiCreateImageSubAnalysesTable() {
 
-  let limit = 1000;
-  let sortOrder = "ASCENDING"
+  let limit = 200;
 
-  fetch('/api/list/image_sub_analyses/' + limit + "/" + sortOrder)
+  fetch('/api/list/image_sub_analyses/' + limit )
 
     .then(function (response) {
       if (response.status === 200) {
@@ -295,23 +292,29 @@ function drawJobStats(rows, divname) {
 // http(s)://<server:port>/<lab-location>/lab/tree/path/to/notebook.ipynb
 
 function drawImageAnalysisTable(rows){
+  console.log("inside drawImageAnalysisTable, rows", rows)
 
   // Before drawing table, linkify barcode
   rows = addLinkToBarcodeColumn(rows)
 
+  // Before drawing table, linkify error column
+  rows = addLinkToErrorColumn(rows)
+
   // Before drawing table add ("Controls")
   rows = addControlsColumn(rows)
 
-  // Before drawing table add ("View in notebook")
-  rows = addNotebookLinkColumn(rows)
+  // Before drawing table add "Segmentation link" to links column
+  rows = addSegmentationLinkColumn(rows)
 
   // Before drawing table add ("File-Links")
-  rows = addFileLinksColumn(rows)
+  //rows = addFileLinksColumn(rows)
 
   // Truncate "result" column
   rows = truncateColumn(rows, "result", 100);
 
   drawTable(rows, "image_analyses-table-div");
+
+  console.log("done drawImageAnalysisTable")
 }
 
 function drawPlateAcqTable(rows){
@@ -337,7 +340,7 @@ function addLinkToBarcodeColumn(rows){
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
     let barcode = rows[nRow][barcode_col_index];
-    console.log("barcode", barcode);
+    //console.log("barcode", barcode);
 
     let link_url = base_url + "barcode=" + encodeURI(barcode)
 
@@ -345,6 +348,39 @@ function addLinkToBarcodeColumn(rows){
 
     // replace cell
     rows[nRow][barcode_col_index]  = new_contents;
+  }
+
+  return rows;
+
+}
+
+function addLinkToErrorColumn(rows){
+
+  console.log("Inside addLinkToErrorColumn", rows);
+
+  let cols = rows[0];
+
+  // Define which column is barcode column
+  let error_col_index = cols.indexOf("error");
+  let id_col_index = cols.indexOf("id");
+
+  let base_url = "https://pipelinegui.k8s-prod.pharmb.io/error-log/";
+
+  // Start from row 1 (0 is headers)
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+
+    let error = rows[nRow][error_col_index];
+
+    if(error && error.length > 0){
+      console.log("error", error);
+      let id = rows[nRow][id_col_index];
+      let link_url = base_url + encodeURI(id);
+      let new_contents = "<a target='pipeline-error' href='" + link_url + "'>" + error + "</a>"
+      // replace cell
+      rows[nRow][error_col_index]  = new_contents;
+    }
+
+
   }
 
   return rows;
@@ -395,6 +431,48 @@ function addNotebookLinkColumn(rows){
     }
 
     rows[nRow].push(cell_contents);
+
+  }
+
+  return rows;
+
+}
+
+function addSegmentationLinkColumn(rows){
+
+  console.log("Inside Add addSegmentationLinkColumn");
+
+  let cols = rows[0];
+
+  // Define which column in result contains the result
+  let id_col_index = cols.indexOf("id");
+  let meta_col_index = cols.indexOf("meta");
+
+  // Add header
+  cols.splice(10, 0, "links");
+
+  // Loop table rows
+  // Start from row 1 (0 is headers)
+
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+
+    let id = rows[nRow][id_col_index];
+    let meta = rows[nRow][meta_col_index];
+
+    let cell_contents = "";
+
+    console.log("meta", meta);
+
+    if(meta && meta['type'].indexOf("cp-features") > -1){
+
+      console.log("meta", meta);
+
+      let link_url = "segmentation/" + id;
+      cell_contents = "<a target='segmentation' href='" + link_url + "'>Segmentation</a>"
+    }
+
+    // insert cell
+    rows[nRow].splice(10,0,cell_contents);
 
   }
 
@@ -453,19 +531,19 @@ function addFileLinksColumn(rows){
   // Create new cell in all rows
   for (let nRow = 1; nRow < rows.length; nRow++) {
 
-    console.log("nRow:", nRow);
+    //console.log("nRow:", nRow);
 
     let result = rows[nRow][result_col_index];
-    console.log("result:)", result);
+    //console.log("result:)", result);
 
     let cell_contents = "";
 
     if(result != null){
-      console.log("result.file_list", result.file_list);
+      //console.log("result.file_list", result.file_list);
       for(var file_path of result.file_list){
-        console.log("file_path", file_path);
+        //console.log("file_path", file_path);
         if(file_path.endsWith(".pdf") || file_path.endsWith(".csv")){
-          console.log("file_path", file_path);
+          //console.log("file_path", file_path);
 
           link_text = basename(file_path);
 
@@ -488,7 +566,7 @@ function truncateColumn(rows, column_name, trunc_length){
   column_index = cols.indexOf(column_name);
 
   for (let nRow = 1; nRow < rows.length; nRow++) {
-    console.log("nRow:", nRow);
+    //console.log("nRow:", nRow);
 
     let content = rows[nRow][column_index];
     if(typeof content == 'object'){
@@ -612,7 +690,7 @@ function getAnalysisPipelineFromName(name){
   // Loop until name is fount, then return protocol-object
   for (let analysis_pipeline of _loaded_analysisPipelines) {
     if (name === analysis_pipeline['name']) {
-      console.log("String match");
+      //console.log("String match");
       return analysis_pipeline;
     }
   }
@@ -645,10 +723,9 @@ function apiLoadAnalysisPipelines(selected = "") {
 
 function apiLoadPlateAcqSelect(selected = "") {
 
-  let limit = 1000;
-  let sortOrder = "ASCENDING"
+  let limit = 200;
 
-  fetch('/api/list/plate_acquisition/' + limit + "/" + sortOrder)
+  fetch('/api/list/plate_acquisition/' + limit )
     .then(response => response.json())
     .then(data => {
 
@@ -676,7 +753,7 @@ function updatePlateAcqSelect(plateAcqs, selected = "") {
 
   // Just loop all elements
   plateAcqs.forEach(function (plateAcq, index) {
-    console.log("plateAcq", plateAcq)
+    //console.log("plateAcq", plateAcq)
     elemSelect.options.add(new Option(plateAcq[0]));
     // Maybe select option
     if (selected === plateAcq[0]) {
@@ -707,7 +784,7 @@ function updateAnalysisPipelinesSelect(selected = "") {
   // Just loop all elements
   let pipelines = getAnalysisPipelines();
   pipelines.forEach(function (pipeline, index) {
-    console.log("pipeline", pipeline)
+    //console.log("pipeline", pipeline)
     elemSelect.options.add(new Option(pipeline['name']));
     // Maybe select option
     if (selected === pipeline['name']) {
@@ -955,7 +1032,7 @@ function editMetaPresetsChanged(){
 
 function initIndexPage() {
   console.log("Inside initIndexPage()");
-  apiCreatePlateAcqTable();
+  //apiCreatePlateAcqTable();
   apiCreateImageAnalysesTable();
   apiCreateImageSubAnalysesTable();
   apiCreateJobsTable();

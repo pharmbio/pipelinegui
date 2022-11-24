@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import logging
 import json
+import time
 import psycopg2
+import psycopg2.extras
 import settings as pipelinegui_settings
 
 def get_connection():
-    return psycopg2.connect(host=pipelinegui_settings.DB_HOSTNAME,
+    return psycopg2.connect(     host=pipelinegui_settings.DB_HOSTNAME,
+                                 port=pipelinegui_settings.DB_PORT,
                                  database=pipelinegui_settings.DB_NAME,
                                  user=pipelinegui_settings.DB_USER, password=pipelinegui_settings.DB_PASS)
 
@@ -16,30 +19,61 @@ def list_plate_acquisitions():
              "ORDER BY id DESC "
              "LIMIT 1000")
 
-    return select_from_db(query)
+    resultlist = select_as_table_from_db(query)
+    return resultlist_to_json(resultlist)
 
-def list_image_analyses():
+def list_image_analyses(limit):
 
     query = ("SELECT * "
              "FROM image_analyses_v1 "
              "ORDER BY id DESC "
-             "LIMIT 1000")
+             "LIMIT %s")
+    params = (limit,)
 
-    return select_from_db(query)
+    resultlist = select_as_table_from_db(query, params)
+    return resultlist_to_json(resultlist)
 
-def list_image_sub_analyses():
+def list_image_sub_analyses(limit):
 
     query = ("SELECT * "
              "FROM image_sub_analyses_v1 "
              "ORDER BY sub_id DESC "
-             "LIMIT 1000")
+             "LIMIT %s")
+    params = (limit,)
 
-    return select_from_db(query)
+    resultlist = select_as_table_from_db(query, params)
+    return resultlist_to_json(resultlist)
 
+def select_image_analyses(id):
+    query = ("SELECT * "
+             "FROM image_analyses_v1 "
+             "WHERE id = %s ")
+    params = (id,)
 
-def select_from_db(query):
+    return select_from_db(query, params)
+
+def select_image_sub_analyses(id):
+    query = ("SELECT * "
+             "FROM image_sub_analyses_v1 "
+             "WHERE analyses_id = %s ")
+    params = (id,)
+
+    return select_from_db(query, params)
+
+def resultlist_to_json(resultlist):
+    # First dump to string (This is because datetime cant be converted to string without the default=str function)
+    result_jsonstring = json.dumps(resultlist, indent=2, default=str)
+
+    # Then reload into json
+    result = json.loads(result_jsonstring)
+
+    # logging.debug(json.dumps(result, indent=2, default=str))
+    return result
+
+def select_as_table_from_db(query, params=None):
 
     logging.debug("Inside select from query")
+    logging.info("params=" + str(params))
     logging.info("query=" + str(query))
 
     conn = None
@@ -48,7 +82,10 @@ def select_from_db(query):
         conn = get_connection()
 
         cursor = conn.cursor()
-        cursor.execute(query)
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
 
         colnames = [desc[0] for desc in cursor.description]
 
@@ -62,15 +99,7 @@ def select_from_db(query):
         res = [list(ele) for ele in rows]
         resultlist = [colnames] + res
 
-        # First dump to string (This is because datetime cant be converted to string without the default=str function)
-        result_jsonstring = json.dumps(resultlist, indent=2, default=str)
-
-        # Then reload into json
-        result = json.loads(result_jsonstring)
-
-        # logging.debug(json.dumps(result, indent=2, default=str))
-
-        return result
+        return resultlist
 
     except (Exception, psycopg2.DatabaseError) as err:
         logging.exception("Message")
@@ -311,6 +340,33 @@ def update_analysis_meta(analysis_id, analysis_meta):
         cursor.close()
 
         return {"rows updated": updated_rows_count}
+
+    except (Exception, psycopg2.DatabaseError) as err:
+        logging.exception("Message")
+        raise err
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def select_from_db(query, params):
+
+    conn = None
+
+    try:
+
+        #start = time.time()
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+
+        start = time.time()
+        cursor.execute(query, params)
+        results = cursor.fetchall()
+        cursor.close()
+
+        logging.info(f"elapsed: {time.time() - start}")
+
+        return results
 
     except (Exception, psycopg2.DatabaseError) as err:
         logging.exception("Message")

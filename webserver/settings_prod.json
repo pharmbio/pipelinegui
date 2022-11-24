@@ -7,5 +7,5 @@
   "DB_NAME": "imagedb",
   "ADMINER_URL": "https://imagedb-adminer.k8s-prod.pharmb.io/?pgsql=imagedb-pg-postgresql.services.svc.cluster.local&username=postgres&db=imagedb&ns=public",
   "DEBUG": "False",
-  "STATIC_RESULTS_DIR": "/cpp_work/results"
+  "STATIC_CPP_DIR": "/cpp_work"
 }

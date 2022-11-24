@@ -27,9 +27,9 @@ def is_debug():
     return debug
 
 def get_namespace():
-    
+
     if is_develop():
-        namespace = "cpp-debug"
+        namespace = "cpp" # "cpp-debug"
     else:
         namespace = "cpp"
 
@@ -112,7 +112,7 @@ def list_jobs():
 
         rows.append(row)
 
-    
+
     return rows
 
 def getDuration(started, finished):
@@ -122,7 +122,7 @@ def getDuration(started, finished):
     if started == None:
         duration = None
     elif finished == None:
-        logging.info(str(datetime.datetime.utcnow()))
+        #logging.info(str(datetime.datetime.utcnow()))
         duration =  None #started - datetime.datetime.utcnow()
     else:
         duration = finished - started
@@ -135,10 +135,10 @@ def getAge(created):
         return None
 
     now = datetime.datetime.now()
-    now_utc = now.replace(tzinfo = datetime.timezone.utc) 
+    now_utc = now.replace(tzinfo = datetime.timezone.utc)
 
-    logging.info("created" + str(created))
-    logging.info("now" + str(now_utc))
+    #logging.info("created" + str(created))
+    #logging.info("now" + str(now_utc))
 
     age = now_utc - created
 
@@ -163,7 +163,7 @@ def get_job_log(job_name):
         response = k8s_core_api.read_namespaced_pod_log(namespace=namespace, name=pod_name)
     else:
         response = "Could not find a log, is pod started?"
-            
+
     return str(response)
 
 def delete_analysis_jobs(analysis_id):
