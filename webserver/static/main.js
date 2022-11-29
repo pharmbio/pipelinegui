@@ -501,7 +501,7 @@ function addControlsColumn(rows){
     let stopLink = "<a href='#' onClick='confirmStopAnalysis(" + id + ");'>Stop</a>";
     let restartLink = "<a href='#' onClick='confirmRestartAnalysis(" + id + ");'>Restart</a>";
     let editMetaLink = "<a href='#' onClick='updateMeta(" + id + "," + meta + ");'>Edit meta</a>";
-    let new_cell_content = restartLink + "<br>" + deleteLink + "<br>" + stopLink + "<br>" + editMetaLink;
+    let new_cell_content = deleteLink + "<br>" + editMetaLink;
 
     // insert cell first
     rows[nRow].splice(0,0,new_cell_content);
