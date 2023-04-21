@@ -189,6 +189,35 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         """
 
         # log all input parameters
+        logging.info("%r %s" % (self.request, self.request.body.decode()))
+
+        plate_acq_input = self.get_argument("plate_acq-input")
+        analysis_pipeline_name = self.get_argument("analysis_pipelines-select")
+        cellprofiler_version = self.get_argument("cellprofiler_version-select")
+
+        well_filter = self.get_argument("well_filter-input")
+        site_filter = self.get_argument("site_filter-input")
+        priority = self.get_argument("priority-input")
+
+        logging.info("priority:" + str(priority))
+
+        plate_acqs_list = pipelineutils.parse_string_of_num_and_ranges(plate_acq_input)
+        for plate_acquisition in plate_acqs_list:
+            results = dbqueries.submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_version, well_filter, site_filter, priority)
+            if results != "OK":
+                break
+        logging.debug(results)
+        self.finish({'results':results})
+
+class CloneAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+    """
+    The query handler handles form posts and returns list of results
+    """
+    def post(self):
+        """Handles POST requests.
+        """
+
+        # log all input parameters
         logging.debug("%r %s" % (self.request, self.request.body.decode()))
 
         plate_acq_input = self.get_argument("plate_acq-input")
