@@ -4,9 +4,6 @@ networks:
   traefik_web:
     external:
       name: traefik_web
-  db-net:
-    external:
-      name: image-db-net
 
 volumes:
   # Webroot
@@ -33,25 +30,16 @@ services:
       - "traefik.http.routers.pipelineguiweb.rule=Host(`${TRAEFIK_FRONTEND_URL?You need to specify env TRAEFIK_FRONTEND_URL, e.g. TRAEFIK_FRONTEND_URL=name.my-domain.com}`)"
       - "traefik.http.routers.pipelineguiweb.entrypoints=websecure"
       - "traefik.http.routers.pipelineguiweb.tls.certresolver=myresolver"
-      #  "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https" 
-      # --entrypoints.web.address=:80
-      # --entrypoints.web.http.redirections.entryPoint.to=websecure
-      # --entrypoints.web.http.redirections.entryPoint.scheme=https
-      # --entrypoints.websecure.address=:443
-      # - traefik.frontend.auth.basic=${TRAEFIK_BASIC_AUTH? You need to specify env TRAEFIK_BASIC_AUTH, e.g. TRAEFIK_BASIC_AUTH=username:$blablsbskjfhbsjhslkfsjlkdslkjf/kljsd}
     environment:
-     # - DEVELOP=True
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}
       - DB_HOSTNAME=${DB_HOSTNAME}
-  #    - KUBECONFIG=/kube/config.yaml
 
     networks:
       - traefik_web
-      - db-net
     volumes:
       - pipelinegui-webroot-bind:/app
       - ../kube_config/:/kube
-      - /share/data/cellprofiler/automation/:/cpp_work # mount the work and result nfs share from the fs of the dev node
+      - /share/data2/cellprofiler/debug-automation/:/cpp_work # mount the work and result nfs share from the fs of the dev node
