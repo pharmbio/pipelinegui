@@ -199,11 +199,20 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         site_filter = self.get_argument("site_filter-input")
         priority = self.get_argument("priority-input")
 
-        logging.info("priority:" + str(priority))
+        run_on_uppmax = ("on" == self.get_argument("run-uppmax-cbx", default="off"))
+
+        logging.info(f"run_on_uppmax: {run_on_uppmax}")
+        logging.info(f"priority: {priority}")
 
         plate_acqs_list = pipelineutils.parse_string_of_num_and_ranges(plate_acq_input)
         for plate_acquisition in plate_acqs_list:
-            results = dbqueries.submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_version, well_filter, site_filter, priority)
+            results = dbqueries.submit_analysis(plate_acquisition,
+                                                analysis_pipeline_name,
+                                                cellprofiler_version,
+                                                well_filter,
+                                                site_filter,
+                                                priority,
+                                                run_on_uppmax)
             if results != "OK":
                 break
         logging.debug(results)

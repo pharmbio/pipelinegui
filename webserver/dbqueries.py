@@ -178,7 +178,8 @@ def save_analysis_pipelines(name, data):
         if conn is not None:
             conn.close()
 
-def submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_version, well_filter, site_filter, priority_string):
+def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_version,
+                    well_filter, site_filter, priority_string, run_on_uppmax):
 
     logging.debug("save_analysis_pipelines")
 
@@ -207,6 +208,8 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_vers
 
         # Add var to meta
         analysis_meta['priority'] = priority
+        if run_on_uppmax:
+            analysis_meta['run-on-uppmax'] = run_on_uppmax
 
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "
@@ -218,6 +221,14 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_vers
         cursor.execute(query, [plate_acquisition, pipeline_name, json.dumps(analysis_meta)])
         analysis_id = cursor.fetchone()[0]
         cursor.close()
+
+        # Add uppmax setting to sub_analysis
+        for sub_analysis in sub_analyses:
+            sub_analysis['run_on_uppmax'] = run_on_uppmax
+
+        # Add priority version info to sub_analysis
+        for sub_analysis in sub_analyses:
+            sub_analysis['priority'] = priority
 
         # Add cellprofiler version info to sub_analysis
         for sub_analysis in sub_analyses:
@@ -233,7 +244,6 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_vers
             for sub_analysis in sub_analyses:
                 sub_analysis['site_filter'] = site_filter.split(',')
 
-        sub_analysis['priority'] = priority
 
         depends_on_id = []
         for sub_analysis in sub_analyses:

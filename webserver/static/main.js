@@ -312,9 +312,43 @@ function drawImageAnalysisTable(rows){
   // Truncate "result" column
   rows = truncateColumn(rows, "result", 100);
 
+  if (document.getElementById("show-uppmax-cbx") && document.getElementById("show-uppmax-cbx").checked) {
+    // leave everything
+  }else{
+    // filter away uppmax
+    rows = filterOutUppmax(rows);
+  }
+
   drawTable(rows, "image_analyses-table-div");
 
   console.log("done drawImageAnalysisTable")
+}
+
+
+
+function filterOutUppmax(rows){
+  return filterOutFromMeta(rows, 'run-on-uppmax');
+}
+
+function filterOutFromMeta(rows, meta_val){
+
+  let cols = rows[0];
+  let meta_col_index = cols.indexOf("meta");
+
+  filtered = []
+  filtered.push(rows[0])
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+
+    let meta = rows[nRow][meta_col_index];
+
+    if(meta && meta[meta_val]){
+      console.log("meta", meta);
+    }else{
+      filtered.push(rows[nRow])
+    }
+  }
+
+  return filtered
 }
 
 function drawPlateAcqTable(rows){
@@ -393,6 +427,13 @@ function drawImageSubAnalysisTable(rows){
 
   // Truncate "result" column
   rows = truncateColumn(rows, "result", 100);
+
+  if (document.getElementById("show-uppmax-cbx") && document.getElementById("show-uppmax-cbx").checked) {
+    // leave everything
+  }else{
+    // filter away uppmax
+    rows = filterOutUppmax(rows);
+  }
 
   drawTable(rows, "image_sub_analyses-table-div");
 
@@ -851,7 +892,6 @@ function apiRunAnalysis() {
 
           $("#run-analysis-modal").modal('hide');
           showOKModal("Analysis submitted OK");
-
         });
       }
       else {
