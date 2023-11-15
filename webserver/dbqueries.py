@@ -157,10 +157,10 @@ def save_analysis_pipelines(name, data):
         conn = get_connection()
 
         # Build query
-        query = ("INSERT INTO analysis_pipelines(name, meta)"
-                 "VALUES (%s, %s) "
+        query = ("INSERT INTO analysis_pipelines(name, meta, modified) "
+                 "VALUES (%s, %s, CURRENT_TIMESTAMP) "
                  "ON CONFLICT (name) DO UPDATE "
-                 "  SET meta = %s")
+                 "SET meta = %s, modified = CURRENT_TIMESTAMP")
 
         logging.info("query" + str(query))
 

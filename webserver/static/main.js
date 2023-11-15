@@ -341,10 +341,10 @@ function filterOutFromMeta(rows, meta_val){
 
     let meta = rows[nRow][meta_col_index];
 
-    if(meta && meta[meta_val]){
+    if (meta && meta[meta_val] === true) {
       console.log("meta", meta);
-    }else{
-      filtered.push(rows[nRow])
+    } else {
+      filtered.push(rows[nRow]);
     }
   }
 
