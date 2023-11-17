@@ -118,7 +118,7 @@ def list_analysis_pipelines():
 
         conn = get_connection()
 
-        query = ("SELECT name, meta "
+        query = ("SELECT name, meta, FLOOR(EXTRACT(EPOCH FROM modified)) AS modified "
                  "FROM analysis_pipelines "
                  "ORDER BY name")
 
@@ -131,7 +131,8 @@ def list_analysis_pipelines():
 
         for row in cursor:
             resultlist.append({'name': row[0],
-                               'meta': row[1]
+                               'meta': row[1],
+                               'modified': row[2]
                                })
 
         cursor.close()

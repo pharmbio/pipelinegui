@@ -60,7 +60,11 @@ def select_image_analyses_automation_unsubmitted():
                 AND id NOT IN (
                                 SELECT plate_acq_id
                                 FROM image_analyses_automation_submitted
-                            )
+                              )
+                AND id NOT IN (
+                                SELECT plate_acquisition_id
+                                FROM image_analyses
+                              )
                 """
 
         cursor = conn.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -227,19 +231,19 @@ def polling_loop():
 
         start_loop = time.time()
 
-        results = select_image_analyses_automation_unsubmitted()
+        all_finished = select_image_analyses_automation_unsubmitted()
 
-        logging.debug(f"len(results) {len(results)}")
-        logging.debug(f"results {results}")
+        logging.debug(f"len(all_finished) {len(all_finished)}")
+        logging.debug(f"all_finished {all_finished}")
 
         # Loop through all new plate-acquisitions
-        for row in results:
+        for finished in all_finished:
 
-            plate_acq_id = row['id']
-            project = row['project']
-            name = row['name']
+            plate_acq_id = finished['id']
+            project = finished['project']
+            name = finished['name']
             cell_line = get_celline_from_text(name)
-            channel_map_id = row['channel_map_id']
+            channel_map_id = finished['channel_map_id']
 
             logging.debug(f"cell_line: {cell_line}")
             logging.debug(f"project: {project}")
@@ -249,9 +253,7 @@ def polling_loop():
             for analysis in analyses:
 
                 logging.debug(f"going to submit this analysis: {analysis}")
-
                 pipeline_name = analysis['pipeline_name']
-
                 submit_analysis(plate_acq_id, pipeline_name)
 
             # mark this plate_acq_id done

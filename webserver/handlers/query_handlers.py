@@ -13,6 +13,26 @@ import kubeutils
 import fileutils
 import pipelineutils
 
+def myserialize(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, datetime.date):
+        serial = obj.isoformat()
+        return serial
+
+    if isinstance(obj, datetime.datetime):
+        serial = obj.isoformat()
+        return serial
+
+    if isinstance(obj, datetime.time):
+        serial = obj.isoformat()
+        return serial
+
+    if isinstance(obj, decimal.Decimal):
+        return str(obj)
+
+    return obj.__dict__
+
 
 class ListPlateAcqHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
 
@@ -192,7 +212,14 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         logging.info("%r %s" % (self.request, self.request.body.decode()))
 
         plate_acq_input = self.get_argument("plate_acq-input")
-        analysis_pipeline_name = self.get_argument("analysis_pipelines-select")
+
+        # Get pipeline from one of three select-boxes
+        analysis_pipeline_name = self.get_argument("analysis_pipelines-select-std", "")
+        if analysis_pipeline_name == "":
+            analysis_pipeline_name = self.get_argument("analysis_pipelines-latest", "")
+        if analysis_pipeline_name == "":
+            analysis_pipeline_name = self.get_argument("analysis_pipelines-select", "")
+
         cellprofiler_version = self.get_argument("cellprofiler_version-select")
 
         well_filter = self.get_argument("well_filter-input")

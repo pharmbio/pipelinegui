@@ -805,33 +805,12 @@ function updatePlateAcqSelect(plateAcqs, selected = "") {
 
 
 
+
+
+
 function updateAnalysisPipelinesUI(selected = "") {
   updateAnalysisPipelinesSelect(selected);
   redrawSelectedAnalysisPipeline();
-}
-
-function updateAnalysisPipelinesSelect(selected = "") {
-
-  // This select is not available on all pages, return if not
-  let elemSelect = document.getElementById('analysis_pipelines-select');
-  if (elemSelect == null) {
-    return;
-  }
-
-  // reset
-  elemSelect.options.length = 0;
-  elemSelect.options.selectedIndex = -1;
-
-  // Just loop all elements
-  let pipelines = getAnalysisPipelines();
-  pipelines.forEach(function (pipeline, index) {
-    //console.log("pipeline", pipeline)
-    elemSelect.options.add(new Option(pipeline['name']));
-    // Maybe select option
-    if (selected === pipeline['name']) {
-      elemSelect.options.selectedIndex = index;
-    }
-  });
 }
 
 /*
@@ -841,17 +820,106 @@ function setAnalysisPipelinesSelection(analysisPineline) {
 }
 */
 
+
+function processPipelinesSelect(elemSelectId, processFunction, selected = "") {
+  let elemSelect = document.getElementById(elemSelectId);
+  if (elemSelect == null) {
+    return;
+  }
+
+  elemSelect.options.length = 0;
+
+  // Add an empty option at the beginning
+  elemSelect.options.add(new Option("", ""));
+
+  let pipelines = getAnalysisPipelines();
+  let processedPipelines = processFunction(pipelines);
+
+  console.log('processedPipelines', processedPipelines);
+
+  processedPipelines.forEach(function (pipeline, index) {
+    elemSelect.options.add(new Option(pipeline['name']));
+    if (selected === pipeline['name']) {
+      elemSelect.options.selectedIndex = index + 1; // Adjust index due to the new empty option
+    }
+  });
+
+  // If no specific selection is made, keep the empty option selected
+  if (!selected) {
+    elemSelect.options.selectedIndex = 0;
+  }
+}
+
+function filterStandardPipelines(pipelines) {
+  return pipelines.filter(pipeline => pipeline['meta'] && pipeline['meta']['analysis_meta'] && pipeline['meta']['analysis_meta']['standard_pipeline']);
+}
+
+function getLatestPipelines(pipelines) {
+  return pipelines.sort((a, b) => b['modified'] - a['modified']).slice(0, 20);
+}
+
+function getAllPipelines(pipelines) {
+  return pipelines;
+}
+
+
+function updateAnalysisPipelinesSelect(selected = "") {
+  updateAnalysisPipelinesSelectStandard(selected);
+  updateAnalysisPipelinesSelectLatest(selected);
+  updateAnalysisPipelinesSelectAll(selected);
+}
+
+function updateAnalysisPipelinesSelectStandard(selected = "") {
+  processPipelinesSelect('analysis_pipelines-select-std', filterStandardPipelines, selected);
+}
+
+function updateAnalysisPipelinesSelectLatest(selected = "") {
+  processPipelinesSelect('analysis_pipelines-select-latest', getLatestPipelines, selected);
+}
+
+function updateAnalysisPipelinesSelectAll(selected = "") {
+  processPipelinesSelect('analysis_pipelines-select', getAllPipelines, selected);
+}
+
+
+function getFirstSelectedPipeline() {
+  // Array of select element IDs
+  const selectIds = [
+    'analysis_pipelines-select-std',
+    'analysis_pipelines-select-latest',
+    'analysis_pipelines-select'
+  ];
+
+  for (let id of selectIds) {
+    let selectElement = document.getElementById(id);
+    if (selectElement && selectElement.selectedIndex > 0) {
+      // selectedIndex > 0 to exclude the blank option (which is at index 0)
+      return selectElement.options[selectElement.selectedIndex].value;
+    }
+  }
+
+  return null; // Return null if no selection or only blank options are selected
+}
+
 function redrawSelectedAnalysisPipeline() {
 
-  let elem = document.getElementById('analysis_pipelines-select');
-  let pipelineName = elem.options[elem.selectedIndex].value;
-  console.log("pipelineName", pipelineName);
-  let pipeline = getAnalysisPipelineFromName(pipelineName);
+  let pipelineName = getFirstSelectedPipeline();
 
-  console.log("pipeline", pipeline);
+  console.log("pipelineName", pipelineName);
+
+  if(pipelineName === undefined || pipelineName === null){
+    pipelineName = ""
+  }
+
+  let pipeline_meta = "";
+  if(pipelineName !== ""){
+    let pipeline = getAnalysisPipelineFromName(pipelineName);
+    console.log("pipeline", pipeline);
+    pipeline_meta = JSON.stringify(pipeline['meta'], null, 2);
+  }
 
   // Update textfield
-  document.getElementById('analysis_pipeline-meta').value = JSON.stringify(pipeline['meta'], null, 2);
+  document.getElementById('analysis_pipeline-meta').value = pipeline_meta;
 
   // Update modal save and save as, delete .. text fields (if they are present)
   if(document.getElementById('save-analysis_pipeline-name')){
@@ -875,8 +943,15 @@ function reloadAnalysisPipelinesUI(selected = "") {
   apiLoadAnalysisPipelines(selected);
 }
 
+
 function apiRunAnalysis() {
 
+
+  // Check if 'pipelineName' is not blank
+  if(! getFirstSelectedPipeline()){
+    displayModalError("Pipeline is blank. No can do.");
+    return; // Exit the function
+  }
 
   let formData = new FormData(document.getElementById('main-form'));
 

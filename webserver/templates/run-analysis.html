@@ -231,7 +231,21 @@
 
             <!-- Analysis name selector -->
             <div class="input-group-prepend">
-              <label class="input-group-text" for="analysis_pipelines-select">Select analysis:</label>
+              <label class="input-group-text" for="analysis_pipelines-select-std">Standard:</label>
+            </div>
+            <select name="analysis_pipelines-select-std" class="form-control" style="max-width: 300px;"
+              id="analysis_pipelines-select-std">
+            </select>
+
+            <div class="input-group-prepend ml-2">
+              <label class="input-group-text" for="analysis_pipelines-select-latest">Latest:</label>
+            </div>
+            <select name="analysis_pipelines-select-latest" class="form-control" style="max-width: 300px;"
+              id="analysis_pipelines-select-latest">
+            </select>
+
+            <div class="input-group-prepend ml-2">
+              <label class="input-group-text" for="analysis_pipelines-select">All:</label>
             </div>
             <select name="analysis_pipelines-select" class="form-control" style="max-width: 300px;"
               id="analysis_pipelines-select">
@@ -269,7 +283,6 @@
                       <option value="v4.2.1-cellpose2.0">v4.2.1-cellpose2.0</option>
                       <option selected value="v4.2.5-cellpose2.0">v4.2.5-cellpose2.0</option>
                     </select>
-
 
                     <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
                       <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-uppmax-cbx" id="run-uppmax-cbx">
@@ -475,19 +488,23 @@
     // Setup UI
     initRunAnalysisPage();
 
-    //$('#my-button').click(function() {
-    //  SleepTime(2000);
-    //})
-
-    // jQuery init methods
-    $(document).ready(function () {
-
-      // Attach event listeners
-      $("#analysis_pipelines-select").change(function () {
-        redrawSelectedAnalysisPipeline();
+    document.addEventListener('DOMContentLoaded', function() {
+      var selects = document.querySelectorAll('[id^="analysis_pipelines-select"]');
+  
+      selects.forEach(function(select) {
+          select.addEventListener('change', function() {
+              // Reset other selects
+              selects.forEach(function(otherSelect) {
+                  if (otherSelect !== select) {
+                      otherSelect.selectedIndex = 0;
+                  }
+              });
+  
+              redrawSelectedAnalysisPipeline();
+          });
       });
-
     });
+  
   </script>
 
 </body>
