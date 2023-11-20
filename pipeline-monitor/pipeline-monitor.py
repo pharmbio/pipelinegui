@@ -97,6 +97,7 @@ def select_image_analyses_automation_from_params(project, cell_line, channel_map
                 WHERE (cell_line = %s OR cell_line = '*')
                 AND (channel_map = %s OR channel_map = -1)
                 AND (project = %s)
+                ORDER BY id
                 """
 
         cursor = conn.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
@@ -152,7 +153,7 @@ def add_plate_acq_id_to_image_analyses_automation_submitted(plate_acq_id):
         if conn is not None:
             put_connection(conn)
 
-def submit_analysis(plate_acquisition, analysis_pipeline_name):
+def submit_analysis(plate_acquisition, analysis_pipeline_name, additional_meta):
     '''This method is copied from pipelinegui/webserver/dbqueries.py and in future code should be common and shared'''
 
     logging.debug("submit_analysis")
@@ -174,7 +175,11 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name):
         # get the sub-analysis and analysis_meta part of pipeline-meta
         sub_analyses = meta["sub_analyses"]
         analysis_meta = meta["analysis_meta"]
+
+        # add more meta
         analysis_meta['submitted_by'] = 'pipeline_automation'
+        # Append more meta
+        analysis_meta.update(additional_meta)
 
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "
@@ -192,6 +197,10 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name):
 
         depends_on_id = []
         for sub_analysis in sub_analyses:
+
+            # append meta to sub_analyses
+            sub_analysis.update(additional_meta)
+
             insert_sub_cursor = conn.cursor() # piro says https://stackoverflow.com/users/10138/piro
             insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta, depends_on_sub_id) "
                                 "VALUES (%s,%s,%s,%s) RETURNING sub_id")
@@ -254,7 +263,8 @@ def polling_loop():
 
                 logging.debug(f"going to submit this analysis: {analysis}")
                 pipeline_name = analysis['pipeline_name']
-                submit_analysis(plate_acq_id, pipeline_name)
+                additional_meta = analysis['metadata']
+                submit_analysis(plate_acq_id, pipeline_name, additional_meta)
 
             # mark this plate_acq_id done
             add_plate_acq_id_to_image_analyses_automation_submitted(plate_acq_id)

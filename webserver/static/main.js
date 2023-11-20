@@ -864,9 +864,9 @@ function getAllPipelines(pipelines) {
 
 
 function updateAnalysisPipelinesSelect(selected = "") {
+  updateAnalysisPipelinesSelectAll(selected);
   updateAnalysisPipelinesSelectStandard(selected);
   updateAnalysisPipelinesSelectLatest(selected);
-  updateAnalysisPipelinesSelectAll(selected);
 }
 
 function updateAnalysisPipelinesSelectStandard(selected = "") {
