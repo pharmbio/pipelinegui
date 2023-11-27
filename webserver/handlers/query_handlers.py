@@ -217,7 +217,7 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         # Get pipeline from one of three select-boxes
         analysis_pipeline_name = self.get_argument("analysis_pipelines-select-std", "")
         if analysis_pipeline_name == "":
-            analysis_pipeline_name = self.get_argument("analysis_pipelines-latest", "")
+            analysis_pipeline_name = self.get_argument("analysis_pipelines-select-latest", "")
         if analysis_pipeline_name == "":
             analysis_pipeline_name = self.get_argument("analysis_pipelines-select", "")
 

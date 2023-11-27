@@ -210,7 +210,7 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
         # Add var to meta
         analysis_meta['priority'] = priority
         if run_on_uppmax:
-            analysis_meta['run-on-uppmax'] = run_on_uppmax
+            analysis_meta['run_on_uppmax'] = run_on_uppmax
 
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "

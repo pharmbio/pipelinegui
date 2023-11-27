@@ -327,7 +327,7 @@ function drawImageAnalysisTable(rows){
 
 
 function filterOutUppmax(rows){
-  return filterOutFromMeta(rows, 'run-on-uppmax');
+  return filterOutFromMeta(rows, 'run_on_uppmax');
 }
 
 function filterOutFromMeta(rows, meta_val){
