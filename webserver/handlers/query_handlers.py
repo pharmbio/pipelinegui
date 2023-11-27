@@ -337,16 +337,14 @@ class ErrorLogHandler(tornado.web.RequestHandler): #pylint: disable=abstract-met
 
 
 IMAGE_EXTENSIONS = (".tif", ".tiff", ".png", ".jpg", ".jpeg", ".bmp")
-def get_all_image_files(dir):
-    # get all files
-    logging.info(dir)
-
+def get_image_files(base_dir, limit):
     image_files = []
-    for file in os.listdir(dir):
-        if file.lower().endswith( IMAGE_EXTENSIONS ):
-            absolute_file = os.path.join(dir, file)
-            image_files.append(absolute_file)
-
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.lower().endswith( IMAGE_EXTENSIONS ):
+                image_files.append(os.path.join(root, file))
+                if len(image_files) >= limit:
+                    return image_files
     return image_files
 
 def drawImages(images):
@@ -386,9 +384,9 @@ class SegmentationHandler(tornado.web.RequestHandler): #pylint: disable=abstract
             job_folder = result["job_folder"]
             (f'job folder { job_folder }' )
 
-            img_folder = f'/cpp_work/{job_folder}/img/objnumber/'
+            img_folder = f'/cpp_work/{job_folder}/'
 
-            files = get_all_image_files(img_folder)
+            files = get_image_files(img_folder, limit)
 
             selection = files[0:limit]
 
