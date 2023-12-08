@@ -179,7 +179,8 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, additional_meta):
         # add more meta
         analysis_meta['submitted_by'] = 'pipeline_automation'
         # Append more meta
-        analysis_meta.update(additional_meta)
+        if additional_meta:
+            analysis_meta.update(additional_meta)
 
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "
@@ -199,7 +200,8 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, additional_meta):
         for sub_analysis in sub_analyses:
 
             # append meta to sub_analyses
-            sub_analysis.update(additional_meta)
+            if additional_meta:
+                sub_analysis.update(additional_meta)
 
             insert_sub_cursor = conn.cursor() # piro says https://stackoverflow.com/users/10138/piro
             insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta, depends_on_sub_id) "
