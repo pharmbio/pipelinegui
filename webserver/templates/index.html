@@ -238,10 +238,6 @@
               Succeeded: <span id="n_succeeded_jobs">-</span>,
               Failed: <span id="n_failed_jobs">-</span>
             </div>
-            <div class="form-group form-check">
-              <input type="checkbox" class="form-check-input" name="f" id="show-uppmax-cbx">
-              <label class="form-check-label text-nowrap" for="show-uppmax-cbx">Show Uppmax</label>
-            </div>
         </div>
 
         <!-- image_analyses table-->
@@ -510,11 +506,6 @@
       // Attach event listeners
       $("#plate-size-select").change(function () {
         initPipelineGUI();
-      });
-
-      // Attach event listeners
-      $("#show-uppmax-cbx").change(function () {
-        location.reload();
       });
 
       // Setup UI

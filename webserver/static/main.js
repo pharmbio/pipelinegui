@@ -306,28 +306,19 @@ function drawImageAnalysisTable(rows){
   // Before drawing table add "Segmentation link" to links column
   rows = addSegmentationLinkColumn(rows)
 
+  // Before drawing table add "Segmentation link" to links column
+  rows = addGoToSubLinkColumn(rows)
+
   // Before drawing table add ("File-Links")
   //rows = addFileLinksColumn(rows)
 
   // Truncate "result" column
   rows = truncateColumn(rows, "result", 100);
 
-  if (document.getElementById("show-uppmax-cbx") && document.getElementById("show-uppmax-cbx").checked) {
-    // leave everything
-  }else{
-    // filter away uppmax
-    rows = filterOutUppmax(rows);
-  }
 
   drawTable(rows, "image_analyses-table-div");
 
   console.log("done drawImageAnalysisTable")
-}
-
-
-
-function filterOutUppmax(rows){
-  return filterOutFromMeta(rows, 'run_on_uppmax');
 }
 
 function filterOutFromMeta(rows, meta_val){
@@ -388,6 +379,37 @@ function addLinkToBarcodeColumn(rows){
 
 }
 
+function addGoToSubLinkColumn(rows){
+
+  console.log("Inside addGoToSubLinkColumn");
+
+  let cols = rows[0];
+
+  // Define which column is barcode column
+  let id_col_index = cols.indexOf("id");
+
+  let base_url = "https://pipelinegui.k8s-prod.pharmb.io/index.html#";
+
+  // Start from row 1 (0 is headers)
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+
+    let id = rows[nRow][id_col_index];
+
+    let link_url = base_url + encodeURI(id);
+
+    let new_contents = "<a href='" + link_url + "'>" + id + "</a>";
+
+    // replace cell
+    rows[nRow][id_col_index]  = new_contents;
+  }
+
+  return rows;
+
+}
+
+
+
+
 function addLinkToErrorColumn(rows){
 
   console.log("Inside addLinkToErrorColumn", rows);
@@ -421,6 +443,33 @@ function addLinkToErrorColumn(rows){
 
 }
 
+function addSubAnalysisAnchor(rows){
+
+  console.log("Inside addGoToSubLinkColumn");
+
+  let cols = rows[0];
+
+  // Define which column is barcode column
+  let id_col_index = cols.indexOf("analyses_id");
+
+  let base_url = "https://pipelinegui.k8s-prod.pharmb.io/index.html#";
+
+  // Start from row 1 (0 is headers)
+  for (let nRow = 1; nRow < rows.length; nRow++) {
+
+    let id = rows[nRow][id_col_index];
+
+    let new_contents = "<a name='" + id + "'>" + id + "</a>";
+
+    // replace cell
+    rows[nRow][id_col_index]  = new_contents;
+  }
+
+  return rows;
+
+}
+
+
 function drawImageSubAnalysisTable(rows){
 
   console.log("Inside drawImageSubAnalysisTable");
@@ -428,12 +477,8 @@ function drawImageSubAnalysisTable(rows){
   // Truncate "result" column
   rows = truncateColumn(rows, "result", 100);
 
-  if (document.getElementById("show-uppmax-cbx") && document.getElementById("show-uppmax-cbx").checked) {
-    // leave everything
-  }else{
-    // filter away uppmax
-    rows = filterOutUppmax(rows);
-  }
+  // add named anchor
+  rows = addSubAnalysisAnchor(rows);
 
   drawTable(rows, "image_sub_analyses-table-div");
 
