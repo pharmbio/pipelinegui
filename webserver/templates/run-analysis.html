@@ -289,6 +289,11 @@
                       <label class="form-check-label" style="margin-top:0.8rem;" for="run-uppmax-cbx">Run on Uppmax</label>
                     </div>
 
+                    <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
+                      <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-dardel-cbx" id="run-dardel-cbx">
+                      <label class="form-check-label" style="margin-top:0.8rem;" for="run-dardel-cbx">Run on Dardel</label>
+                    </div>
+
                   </div>
                   <!-- end imput-->
 
@@ -490,7 +495,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       var selects = document.querySelectorAll('[id^="analysis_pipelines-select"]');
-  
+
       selects.forEach(function(select) {
           select.addEventListener('change', function() {
               // Reset other selects
@@ -499,12 +504,12 @@
                       otherSelect.selectedIndex = 0;
                   }
               });
-  
+
               redrawSelectedAnalysisPipeline();
           });
       });
     });
-  
+
   </script>
 
 </body>

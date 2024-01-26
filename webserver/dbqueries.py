@@ -52,6 +52,14 @@ def select_image_analyses(id):
 
     return select_from_db(query, params)
 
+def select_sub_ids(analyses_id):
+    query = ("SELECT sub_id "
+             "FROM image_sub_analyses_v1 "
+             "WHERE analyses_id = %s ")
+    params = (analyses_id,)
+
+    return select_from_db(query, params)
+
 def select_image_sub_analyses(id):
     query = ("SELECT * "
              "FROM image_sub_analyses_v1 "
@@ -180,7 +188,7 @@ def save_analysis_pipelines(name, data):
             conn.close()
 
 def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_version,
-                    well_filter, site_filter, priority_string, run_on_uppmax):
+                    well_filter, site_filter, priority_string, run_on_uppmax, run_on_dardel):
 
     logging.debug("save_analysis_pipelines")
 
@@ -211,6 +219,8 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
         analysis_meta['priority'] = priority
         if run_on_uppmax:
             analysis_meta['run_on_uppmax'] = run_on_uppmax
+        if run_on_dardel:
+            analysis_meta['run_on_dardel'] = run_on_dardel
 
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "

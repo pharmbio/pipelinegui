@@ -228,8 +228,10 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         priority = self.get_argument("priority-input")
 
         run_on_uppmax = ("on" == self.get_argument("run-uppmax-cbx", default="off"))
+        run_on_dardel = ("on" == self.get_argument("run-dardel-cbx", default="off"))
 
         logging.info(f"run_on_uppmax: {run_on_uppmax}")
+        logging.info(f"run_on_dardel: {run_on_dardel}")
         logging.info(f"priority: {priority}")
 
         plate_acqs_list = pipelineutils.parse_string_of_num_and_ranges(plate_acq_input)
@@ -240,7 +242,8 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
                                                 well_filter,
                                                 site_filter,
                                                 priority,
-                                                run_on_uppmax)
+                                                run_on_uppmax,
+                                                run_on_dardel)
             if results != "OK":
                 break
         logging.debug(results)
@@ -375,24 +378,37 @@ class SegmentationHandler(tornado.web.RequestHandler): #pylint: disable=abstract
         logging.info(f"Limit, id: {analysis_id}")
 
         analysis_info = dbqueries.select_image_analyses(analysis_id)
-
         selection = []
+        # First try result dir, then try temp out dir
         if len(analysis_info) > 0:
             row=analysis_info[0]
             result = row['result']
-
-            job_folder = result["job_folder"]
-            (f'job folder { job_folder }' )
-
-            img_folder = f'/cpp_work/{job_folder}/'
-
-            files = get_image_files(img_folder, limit)
-
-            selection = files[0:limit]
-
+            if result:
+                job_folder = result["job_folder"]
+                (f'job folder { job_folder }' )
+                img_folder = f'/cpp_work/{job_folder}/'
+                files = get_image_files(img_folder, limit)
+                selection = files[0:limit]
         else:
             logging.info("do nothing")
 
+        logging.info(f"selection: {selection}")
+
+        # Try temp output folder
+        if selection is None or len(selection) == 0:
+            result = dbqueries.select_sub_ids(analysis_id)
+
+            logging.info(f"result: {result}")
+
+            for row in result:
+                sub_id = row["sub_id"]
+                job_folder = f'/cpp_work/output/{sub_id}'
+                (f'job folder { job_folder }' )
+                img_folder = job_folder
+                files = get_image_files(img_folder, limit)
+                selection = files[0:limit]
+
+        logging.info(f"selection: {selection}")
 
         images = drawImages(selection)
 
