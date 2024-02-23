@@ -345,6 +345,7 @@ def get_image_files(base_dir, limit):
     for root, dirs, files in os.walk(base_dir):
         for file in files:
             if file.lower().endswith( IMAGE_EXTENSIONS ):
+                logging.info(f'file: {file}')
                 image_files.append(os.path.join(root, file))
                 if len(image_files) >= limit:
                     return image_files
@@ -400,13 +401,15 @@ class SegmentationHandler(tornado.web.RequestHandler): #pylint: disable=abstract
 
             logging.info(f"result: {result}")
 
+            all_images = []
             for row in result:
                 sub_id = row["sub_id"]
                 job_folder = f'/cpp_work/output/{sub_id}'
-                (f'job folder { job_folder }' )
                 img_folder = job_folder
                 files = get_image_files(img_folder, limit)
-                selection = files[0:limit]
+                all_images.extend(files)
+
+            selection = all_images[0:limit]
 
         logging.info(f"selection: {selection}")
 
