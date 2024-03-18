@@ -234,8 +234,14 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
         cursor.close()
 
         # Add uppmax setting to sub_analysis
-        for sub_analysis in sub_analyses:
-            sub_analysis['run_on_uppmax'] = run_on_uppmax
+        if run_on_uppmax:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_uppmax'] = run_on_uppmax
+
+        # Add dardel setting to sub_analysis
+        if run_on_dardel:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_dardel'] = run_on_dardel
 
         # Add priority version info to sub_analysis
         for sub_analysis in sub_analyses:

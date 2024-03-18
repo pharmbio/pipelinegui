@@ -36,7 +36,7 @@ class Table{
 
 function apiCreatePlateAcqTable() {
 
-  let limit = 200;
+  let limit = 500;
 
   fetch('/api/list/plate_acquisition/' + limit)
 
@@ -154,7 +154,7 @@ function apiCreatePipelineFilesTable() {
 
 function apiCreateImageAnalysesTable() {
 
-  let limit = 200;
+  let limit = 500;
 
   fetch('/api/list/image_analyses/' + limit )
 
@@ -183,7 +183,7 @@ function apiCreateImageAnalysesTable() {
 
 function apiCreateImageSubAnalysesTable() {
 
-  let limit = 200;
+  let limit = 500;
 
   fetch('/api/list/image_sub_analyses/' + limit )
 
@@ -809,7 +809,7 @@ function apiLoadAnalysisPipelines(selected = "") {
 
 function apiLoadPlateAcqSelect(selected = "") {
 
-  let limit = 200;
+  let limit = 500;
 
   fetch('/api/list/plate_acquisition/' + limit )
     .then(response => response.json())
