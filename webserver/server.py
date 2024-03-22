@@ -26,12 +26,10 @@ class DefaultTemplateHandler(tornado.web.RequestHandler): #pylint: disable=abstr
     This is the main handler of the application
     """
     def get(self):
-        """Renders the index file as a template without arguments.
-        """
-        logging.debug(self.request.path)
 
-        self.render(self.request.path.strip('/'), adminer_url=pipelinegui_settings.ADMINER_URL)
-        #self.render('index.html')
+        self.render(self.request.path.strip('/'), page_name=self.request.path.strip('/'),
+                                                  adminer_url=pipelinegui_settings.ADMINER_URL,
+                                                  debug=logging.debug)
 
 class IndexTemplateHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
     """
@@ -52,7 +50,9 @@ ROUTES = [
           (r'/api/list/pipelinefiles', query_handlers.ListPipelinefilesHandler),
           (r'/run-analysis.html', DefaultTemplateHandler),
           (r'/create-analysis.html', DefaultTemplateHandler),
+          (r'/cellprofiler-devel.html', DefaultTemplateHandler),
           (r'/api/analysis-pipelines/save', query_handlers.SaveAnalysisPipelinesQueryHandler),
+          (r'/api/imgset/save', query_handlers.SaveImgsetQueryHandler),
           (r'/api/analysis-pipelines/run', query_handlers.RunAnalysisQueryHandler),
           (r'/api/analysis-pipelines/delete/(?P<name>.+)', query_handlers.DeleteAnalysisPipelinesQueryHandler),
           (r'/api/analysis-pipelines/(?P<name>.+)*', query_handlers.ListAnalysisPipelinesQueryHandler),

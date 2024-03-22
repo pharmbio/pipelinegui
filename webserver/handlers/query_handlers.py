@@ -301,6 +301,29 @@ class SaveAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
 
         self.finish({'results':results})
 
+class SaveImgsetQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+    """
+    The query handler handles form posts and returns list of results
+    """
+    def post(self):
+        """Handles POST requests.
+        """
+
+        # log all input parameters
+        logging.info("%r %s" % (self.request, self.request.body.decode()))
+
+        # meta = self.get_argument("analysis_pipeline-meta")
+        # name = self.get_argument("analysis_pipeline-name")
+
+        # verification = pipelineutils.veify_analysis_pipeline_meta(meta)
+        # if verification != 'OK':
+        #     results = verification
+        # else:
+        #     results = dbqueries.save_analysis_pipelines(name, meta)
+
+        self.finish({'error':"error"})
+
+
 
 class ListAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
 

@@ -1027,6 +1027,49 @@ function apiRunAnalysis() {
     });
 }
 
+function apiSaveImgset(){
+
+
+  let name = document.getElementById('save-imgset-name').value;
+
+  console.log("form element", document.getElementById('main-form'));
+
+  let formData = new FormData(document.getElementById('main-form'));
+
+  console.log("form data", formData);
+
+  formData.append("imgset-name", name);
+
+  console.log("form data", formData);
+
+  fetch('/api/imgset/save', {
+    method: 'POST',
+    body: formData
+    })
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+          reloadAnalysisPipelinesUI(name);
+          $("#save-imgset-modal").modal('hide');
+          showOKModal("Imgset Saved");
+
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log(error);
+      displayModalError(error);
+    });
+}
+
+
 function apiSaveAnalysisPipeline() {
   // verify
   //verifyProtocolStepsJson(false);

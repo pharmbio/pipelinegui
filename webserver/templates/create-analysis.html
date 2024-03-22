@@ -1,224 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
+<{% extends "base.html" %}
 
-<head>
-
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
-
-  <title>Pipelinegui, create analysis, pharmb.io</title>
-
-  <link rel="shortcut icon" href="/static/pharmbio_logo_square_64x64.png" type="image/x-icon">
-
-  <!-- Bootstrap core CSS -->
-  <link href="/static/theme/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Custom styles for current bootstrap template -->
-  <link href="/static/theme/css/simple-sidebar.css" rel="stylesheet">
-
-  <!-- range-slider Plugin CSS file with desired skin-->
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.0/css/ion.rangeSlider.min.css" />
-
-  <link rel='stylesheet' href='/static/main.css'>
-
-  <!-- json-viewer -->
-  <link rel="stylesheet" href="/static/json-viewer/json-viewer.css">
-
-  <!-- jquery-bonzai -->
-  <link rel="stylesheet" href="/static/jquery-bonzai/jquery.bonsai.css">
-
-  <!-- fancy tree view plugin -->
-  <link href="//cdn.jsdelivr.net/npm/jquery.fancytree@2.27/dist/skin-win8/ui.fancytree.min.css" rel="stylesheet">
-
-  <!-- Custom inline css override -->
-  <style type="text/css">
-    /* Jquery-bonzai override */
-    .bonsai>li {
-      font-size: 14px;
-      margin: 3px;
-    }
-
-    #sidebar-wrapper {
-      width: 160px;
-    }
-
-    textarea.compoundstextarea {
-      /*height: 70%;*/
-      width: 90%;
-      background-color: whitesmoke;
-    }
-
-    .modal-backdrop.show {
-      opacity: 0.25;
-    }
-
-    #alertmodal {
-      top: 5%;
-      right: 50%;
-      outline: none;
-    }
-
-    .plateTable td {
-      background-color: #fafafa;
-      /* This makes empty cells become a bit smaller*/
-      width: 35px;
-      height: 35px;
-      border: 0px solid #ffffff;
-      text-align: center;
-    }
-
-
-    /* This is just for making left sidebar scrollable */
-    /*
-    #sidebar-wrapper {
-      z-index: 1000;
-      position: fixed;
-      left: 190px;
-      top: 0px;
-      bottom: 0px;
-      margin-left: -190px;
-      overflow-y: auto;
-      overflow-: hidden;
-      background: #222222;
-      -webkit-transition: all 0.5s ease;
-      -moz-transition: all 0.5s ease;
-      -o-transition: all 0.5s ease;
-      transition: all 0.5s ease;
-    }
-    #page-content-wrapper {
-      width: 85%;
-      position: fixed;
-      left: 230px;
-      margin-right: 230px;
-    }
-    */
-    /* end -This is just for making left sidebar scrollable */
-
-
-    /* Overrides color on range-slider */
-    .irs--flat .irs-from,
-    .irs--flat .irs-to,
-    .irs--flat .irs-single {
-      background-color: #17a2b8;
-    }
-
-    .irs--flat .irs-bar {
-      background-color: #17a2b8;
-    }
-
-    .irs--flat .irs-from:before,
-    .irs--flat .irs-to:before,
-    .irs--flat .irs-single:before {
-      border-top-color: #17a2b8;
-    }
-
-    .irs--flat .irs-handle>i:first-child {
-      background-color: #17a2b8
-    }
-
-    /* -- end range-slider */
-
-    /*
-      This changes bootstrap base font and all relatives
-     */
-    html {
-      font-size: 14px;
-    }
-  </style>
-
-</head>
-
-<body>
-
-  <div class="d-flex" id="wrapper">
-
-
-    <!-- Sidebar -->
-    <div class="bg-light border-right" id="sidebar-wrapper" ;>
-      <div class="sidebar-heading">Pipelinegui</div>
-
-      <div class="sidebar-heading">
-        <!-- <div class="list-group list-group-flush">-->
-        <ul id='result-list'></ul>
-
-      </div>
-    </div>
-    <!-- /#sidebar-wrapper -->
-
-    <!-- Page Content -->
-    <div id="page-content-wrapper">
-
-
-      <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-
-        <!-- Navbar menues -->
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="index.html">Dashboard</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="run-analysis.html">Run-Analysis</a>
-            </li>
-            <li class="nav-item active">
-              <a class="nav-link" href="create-analysis.html">Create-Analysis</a>
-            </li>
-          </ul>
-
-          <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
-
-
-            <!--
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Help
-            </a>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="#">Not implemented yet...</a>
-              <a class="dropdown-item" href="#">Another thing...</a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </div>
-          </li>
-          -->
-
-            <!-- Adminer menu-->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAdminer" role="button"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Admin
-              </a>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownAdminer">
-                <a class="dropdown-item" target="adminer" href="{{adminer_url}}">Adminer</a>
-              </div>
-            </li>
-
-            <!-- Github menu -->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                Github
-              </a>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown2">
-                <a class="dropdown-item" href="https://github.com/pharmbio/pipelinegui">Pipelinegui repo</a>
-                <a class="dropdown-item" href="https://github.com/pharmbio/pipelinegui/issues">Issues</a>
-              </div>
-            </li>
-
-            <!-- Pharmbio menu -->
-            <li class="nav-item">
-              <a class="nav-link" href="https://pharmb.io">Pharmb.io <span class="sr-only">(current)</span></a>
-            </li>
-
-        </div>
-      </nav>
-
+{% block mainform %}
 
       <!-- Main form -->
       <form id='main-form'> <!-- onsubmit='return false;' -->
@@ -280,42 +62,19 @@
       </form>
 
 
-              <!-- pipelinefiles table -->
-              <div class="container-fluid flex-fill">
-                <br>
-                <h4>Pipeline files</h4>
-                <pre>ls -lah /share/data/cellprofiler/pipelines</pre>
-              </div>
-              <div id="pipelinefiles-table-div" class="container-fluid flex-fill">
-              </div>
-
-
-
-      <!-- Meta data div -->
-      <!--
-    <div id="meta-div" class="container-fluid flex-fill mt-2">
-
-      <div class="input-group">
-        <div class="input-group-prepend">
-          <label class="input-group-text" for="add-field-button">Plate metadata</label>
-        </div>
-        <button type="button" id="add-field-button" class="btn btn-info btn-sm ml-2" data-toggle="modal" data-target="#add-datafield">Add field</button>
-        <button type="button" id="delete-field-button" class="btn btn-info btn-sm ml-2" data-toggle="modal" data-target="#delete-datafield">Delete field</button>
+      <!-- pipelinefiles table -->
+      <div class="container-fluid flex-fill">
+        <br>
+        <h4>Pipeline files</h4>
+        <pre>ls -lah /share/data/cellprofiler/pipelines</pre>
+      </div>
+      <div id="pipelinefiles-table-div" class="container-fluid flex-fill">
       </div>
 
-      <div id="meta-div-json"></div>
-    </div>
-  -->
+{% end %}
 
-    </div>
-  </div>
-  <!-- /#page-content-wrapper -->
 
-  </div>
-  <!-- /#wrapper -->
-
-  <!-- Modal dialogs -->
-
+{% block dialogs %}
 
   <!-- Modal dialog "Save ...." -->
   <div class="modal" id="save-analysis_pipeline-modal" tabindex="-1" role="dialog" aria-labelledby="save-analysisPipelineLabel"
@@ -366,100 +125,23 @@
     </div>
   </div>
 
-  <!--Verification modal alert OK-->
-  <div class="modal" id="alert-modal">
-    <div class="modal-dialog modal-sm">
-      <div class="modal-content">
-        <div class="modal-header bg-success">
-          <h5 class="modal-title"></h5>
-        </div>
-        <div class="modal-body" id="alert-modal-body-div">
-          Verification OK
-        </div>
-      </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-  </div><!-- /.modal -->
-
-  <!-- Modal dialog "Errormessage.." -->
-  <div class="modal" id="error-modal" tabindex="1" role="dialog" aria-labelledby="errormodalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="errormodalLabel">Error</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div id="errordiv" class="modal-body"></div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- end Modal dialogs -->
 
+{% end %}
 
-  <!-- Bootstrap core JavaScript -->
-  <script src="/static/theme/vendor/jquery/jquery.min.js"></script>
-  <script src="/static/theme/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-  <!-- fancy tree view plugin -->
-  <script src="//cdn.jsdelivr.net/npm/jquery.fancytree@2.27/dist/jquery.fancytree-all-deps.min.js"></script>
-
-  <!-- json-viewer -->
-  <script src="/static/json-viewer/json-viewer.js"></script>
-
-  <!-- jquery-bonzai -->
-  <script src="/static/jquery-bonzai/jquery.bonsai.js"></script>
-
-  <!-- range-slider jquery plugin-->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.0/js/ion.rangeSlider.min.js"></script>
-
-  <!-- main javascript for this GUI -->
-  <script src='/static/main.js?version=1.02'></script>
-
+{% block endscripts %}
 
   <!-- Body inline script -->
   <script>
-    // Create an empty table to start with - just because it looks good!
-    //let table = createEmptyTable(8, 12);
-    //let container = document.getElementById('table-div');
-    //container.appendChild(table);
 
-    // Set display error function
-    window.onerror = displayModalJavaScriptError;
 
     // Setup UI
     initCreateAnalysisPage();
 
-    //$('#my-button').click(function() {
-    //  SleepTime(2000);modify li
-    //})
 
     // jQuery init methods
     $(document).ready(function () {
-
-      // Create disabled slider to be updated later
-      $("#timepoint-slider").ionRangeSlider({
-        //skin: "modern",
-        type: "single",
-        min: 1,
-        max: 1,
-        from: 1,
-        disable: true,
-        onChange: function (data) {
-          elem = document.getElementById('timepoint-select');
-          let newVal = data.from - 1;
-          // Check first to avoid recursion
-          if (elem.selectedIndex != newVal) {
-            elem.selectedIndex = data.from - 1;
-            elem.onchange();
-          }
-        }
-      });
 
       // Attach event listeners
       $("#analysis_pipelines-select").change(function () {
@@ -481,8 +163,7 @@
       });
 
     });
-  </script>
+</script>
 
-</body>
+{% end %}
 
-</html>
