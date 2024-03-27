@@ -1029,6 +1029,8 @@ function apiRunAnalysis() {
 
 function apiGenerateImgset(){
 
+  // delete current content in textarea
+  document.getElementById('imgset-textarea').value = ""
 
   let name = document.getElementById('save-imgset-name').value;
 
