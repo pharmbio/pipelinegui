@@ -329,16 +329,15 @@ class SaveImgsetQueryHandler(tornado.web.RequestHandler):  # pylint: disable=abs
                        "site_filter-input should be integers.")
             return
 
-        use_icf = False
-        icf_path = None
+        # Check for the 'include-icf-cbx' parameter to set use_icf
+        include_icf = self.get_argument("include-icf-cbx", None)
+        use_icf = include_icf == "on"
+        icf_path = None if not use_icf else "/cpp_work/devel/icf_npy/" # Set this accordingly
 
         imgsets = cellprofiler_utils.get_imgsets(acq_id, well_filter, site_filter)
-        logging.info(f"imgsets: {imgsets}")
         database = Database.get_instance()
         channel_map = database.get_channel_map_from_acq_id(acq_id)
-        logging.info(f"channel_map: {channel_map}")
         imgset_csv = cellprofiler_utils.get_cellprofiler_imgsets_csv(imgsets, channel_map, use_icf, icf_path)
-        logging.info(f"imgset-csv: {imgset_csv}")
 
         self.set_header("Content-type", "text/plain")
         self.write(imgset_csv)
