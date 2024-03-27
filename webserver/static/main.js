@@ -1230,6 +1230,33 @@ function editMetaPresetsChanged(){
   document.getElementById("edit-meta-input").value = pretty_text;
 }
 
+function saveImgsetAsLocalFile() {
+    let textToSave = document.getElementById("imgset-textarea").value;
+    let textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
+    let textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+  
+    let acq_id = document.getElementById("plate_acq-input").value;
+    let well_filter = document.getElementById("well_filter-input").value;
+    let site_filter = document.getElementById("site_filter-input").value;
+
+    // Create a name
+    let stringsArray = ["imgset", acq_id, well_filter, site_filter];
+    // remove empty parts
+    let joinedString = stringsArray.filter(str => str !== "").join("-");
+    var fileNameToSaveAs = joinedString + ".csv";
+
+    var downloadLink = document.createElement("a");
+    downloadLink.download = fileNameToSaveAs;
+    downloadLink.innerHTML = "Save File";
+    downloadLink.href = textToSaveAsURL;
+    downloadLink.onclick = function(event) {document.body.removeChild(event.target);};
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+    
+    downloadLink.click();
+}
+
+
 
 
 
