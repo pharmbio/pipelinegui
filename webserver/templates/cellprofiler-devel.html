@@ -36,28 +36,41 @@
         <!-- end Toolbar -->
 
         <!--Analysis div -->
-        <!--
-        <div id="analysis-div" class="container-fluid flex-fill">
+
+        <div id="analysis-div" class="container-fluid mt-2 mb-2 ml-2 flex-fill">
 
           <div class="form-group">
-            <textarea readonly name="analysis_pipeline-meta" class="form-control analysistextarea" rows=10
-              id="analysis_pipeline-meta">
+            <textarea readonly name="imgset-textarea" wrap="off" class="form-control imgset-textarea" rows=20
+              id="imgset-textarea">
             </textarea>
           </div>
 
         </div>
-        -->
+
 
         <!-- Toolbar -->
         <div id="toolbar-div" class="container-fluid mt-2 mb-2">
 
            <div class="input-group align-bottom">
 
-              <!-- Run button-->
+
+              <!--
+              <a class="btn btn-primary" target="_imgset" href="/imgset.csv" role="button">Generate imgset</a>
+              -->
+              <!--
               <button type="button" id="run-button" class="btn btn-warning ml-2" data-toggle="modal"
               data-target="#save-imgset-modal">Generate imgset</button>
+              -->
+
+              <button type="button" id="run-button" class="btn btn-warning ml-2" onclick="apiGenerateImgset()">Generate imgset</button>
+
+              <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
+                <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="include-icf-cbx" id="include-icf-cbx">
+                <label class="form-check-label" style="margin-top:0.8rem;" for="include-icf-cbx">Include ICF input header with files from /cpp_work/devel/icf_npy/</label>
+              </div>
 
           </div>
+
 
         </div>
         <!-- end Toolbar -->
@@ -118,25 +131,7 @@
   <!-- Body inline script -->
   <script>
 
-    // Setup UI
-    initRunAnalysisPage();
-
-    document.addEventListener('DOMContentLoaded', function() {
-      var selects = document.querySelectorAll('[id^="analysis_pipelines-select"]');
-
-      selects.forEach(function(select) {
-          select.addEventListener('change', function() {
-              // Reset other selects
-              selects.forEach(function(otherSelect) {
-                  if (otherSelect !== select) {
-                      otherSelect.selectedIndex = 0;
-                  }
-              });
-
-              redrawSelectedAnalysisPipeline();
-          });
-      });
-    });
+      initCellprofilerDevelPage();
 
   </script>
 

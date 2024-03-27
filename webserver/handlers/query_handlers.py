@@ -13,6 +13,8 @@ import dbqueries
 import kubeutils
 import fileutils
 import pipelineutils
+from database import Database
+import cellprofiler_utils
 
 def myserialize(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -301,12 +303,47 @@ class SaveAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
 
         self.finish({'results':results})
 
-class SaveImgsetQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+
+class SaveImgsetQueryHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
     """
-    The query handler handles form posts and returns list of results
+    The query handler handles form posts and returns list of results.
     """
     def post(self):
-        """Handles POST requests.
+        """Handles POST requests."""
+        # Log all input parameters
+        logging.info("%r %s", self.request, self.request.body.decode())
+
+        try:
+            acq_id = int(self.get_argument("plate_acq-input"))
+            site_filter = self.get_argument("site_filter-input").strip().split(',')
+            # If the resulting list only contains an empty string, set it to None
+            if len(site_filter) == 1 and not site_filter[0]:
+                site_filter = None
+            well_filter = self.get_argument("well_filter-input").strip().split(',')
+            if len(well_filter) == 1 and not well_filter[0]:
+                well_filter = None
+        except ValueError as e:
+            logging.error(f"Error converting parameters to integers: {e}")
+            self.set_status(400)
+            self.write("Invalid input parameters. 'plate_acq-input' and 'site_filter-input' should be integers.")
+            return
+
+        use_icf = False
+        icf_path = None
+
+        imgsets = cellprofiler_utils.get_imgsets(acq_id, well_filter, site_filter)
+        logging.info(f"imgsets: {imgsets}")
+        database = Database.get_instance()
+        channel_map = database.get_channel_map_from_acq_id(acq_id)
+        logging.info(f"channel_map: {channel_map}")
+        imgset_csv = cellprofiler_utils.get_cellprofiler_imgsets_csv(imgsets, channel_map, use_icf, icf_path)
+        logging.info(f"imgset-csv: {imgset_csv}")
+
+        self.set_header("Content-type", "text/plain")
+        self.write(imgset_csv)
+
+    def get(self):
+        """Handles GET requests.
         """
 
         # log all input parameters
@@ -321,8 +358,13 @@ class SaveImgsetQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstr
         # else:
         #     results = dbqueries.save_analysis_pipelines(name, meta)
 
-        self.finish({'error':"error"})
 
+
+        imgset = ("Header1,Header2\n"
+                   "val1,val2")
+
+        self.set_header("Content-type", "text/plain")
+        self.write(imgset)
 
 
 class ListAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method

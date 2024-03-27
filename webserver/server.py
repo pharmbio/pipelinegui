@@ -11,6 +11,7 @@ import tornado.web
 import handlers.query_handlers as query_handlers
 
 import settings as pipelinegui_settings
+from database import Database
 
 SETTINGS = {
     'debug': False,
@@ -60,6 +61,7 @@ ROUTES = [
           (r'/api/analysis/update_meta', query_handlers.UpdateMetaQueryHandler),
           (r'/error-log/(?P<analysis_id>.+)', query_handlers.ErrorLogHandler),
           (r'/segmentation/(?P<analysis_id>.+)', query_handlers.SegmentationHandler),
+          (r'/imgset', query_handlers.SaveImgsetQueryHandler),
           (r'/index.html', IndexTemplateHandler),
           (r'/', IndexTemplateHandler),
          ]
@@ -68,11 +70,23 @@ if __name__ == '__main__':
 
     tornado.log.enable_pretty_logging()
 
+    tornado.autoreload.start()
+
     logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                         datefmt='%H:%M:%S',
                         level=logging.INFO)
 
     logging.getLogger().setLevel(logging.INFO)
+
+    # Initialize Database connection pool
+    db_settings = {
+        "host": pipelinegui_settings.DB_HOSTNAME,
+        "port": pipelinegui_settings.DB_PORT,
+        "database": pipelinegui_settings.DB_NAME,
+        "user": pipelinegui_settings.DB_USER,
+        "password": pipelinegui_settings.DB_PASS,
+    }
+    Database.get_instance().initialize_connection_pool(**db_settings)
 
     APP = tornado.web.Application(ROUTES, **SETTINGS)
     APP.listen(8080)

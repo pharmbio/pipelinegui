@@ -154,7 +154,7 @@ function apiCreatePipelineFilesTable() {
 
 function apiCreateImageAnalysesTable() {
 
-  let limit = 500;
+  let limit = 1000;
 
   fetch('/api/list/image_analyses/' + limit )
 
@@ -183,7 +183,7 @@ function apiCreateImageAnalysesTable() {
 
 function apiCreateImageSubAnalysesTable() {
 
-  let limit = 500;
+  let limit = 1000;
 
   fetch('/api/list/image_sub_analyses/' + limit )
 
@@ -1027,7 +1027,7 @@ function apiRunAnalysis() {
     });
 }
 
-function apiSaveImgset(){
+function apiGenerateImgset(){
 
 
   let name = document.getElementById('save-imgset-name').value;
@@ -1048,11 +1048,11 @@ function apiSaveImgset(){
     })
     .then(function (response) {
       if (response.status === 200) {
-        response.json().then(function (json) {
+        response.text().then(function (text) {
 
-          reloadAnalysisPipelinesUI(name);
+          document.getElementById('imgset-textarea').value = text;
+
           $("#save-imgset-modal").modal('hide');
-          showOKModal("Imgset Saved");
 
         });
       }
@@ -1251,5 +1251,10 @@ function initRunAnalysisPage() {
   console.log("Inside initRunAnalysisPage()");
   apiLoadPlateAcqSelect();
   apiLoadAnalysisPipelines();
+  apiCreatePlateAcqTable();
+}
+
+function initCellprofilerDevelPage() {
+  console.log("Inside initCellprofilerDevelPage()");
   apiCreatePlateAcqTable();
 }
