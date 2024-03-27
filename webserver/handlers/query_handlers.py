@@ -325,7 +325,8 @@ class SaveImgsetQueryHandler(tornado.web.RequestHandler):  # pylint: disable=abs
         except ValueError as e:
             logging.error(f"Error converting parameters to integers: {e}")
             self.set_status(400)
-            self.write("Invalid input parameters. 'plate_acq-input' and 'site_filter-input' should be integers.")
+            self.write("Invalid input parameters. plate_acq-input and \n"
+                       "site_filter-input should be integers.")
             return
 
         use_icf = False
