@@ -287,12 +287,34 @@ function drawJobStats(rows, divname) {
 
 }
 
+function filterTableRows(text, rows){
+  // Always include the header row in the filtered results
+  let filtered = [rows[0]];
+
+  // Now add rows (start from 1 since 0 is headers)
+  for (let row = 1; row < rows.length; row++) {
+      console.log[row]
+      // Check if any column in the current row includes the text as a substring
+      // Convert null or undefined to an empty string before calling .includes()
+      if (rows[row].some(col => (col !== null && col !== undefined ? col.toString() : "").includes(text))) {
+        filtered.push(rows[row]);
+      }
+  }
+
+  return filtered;
+}
+
 
 // Notebook link
 // http(s)://<server:port>/<lab-location>/lab/tree/path/to/notebook.ipynb
 
 function drawImageAnalysisTable(rows){
   console.log("inside drawImageAnalysisTable, rows", rows)
+
+  filter = getRowFilter()
+  if(filter){
+    rows = filterTableRows("specs", rows)
+  }
 
   // Before drawing table, linkify barcode
   rows = addLinkToBarcodeColumn(rows)
@@ -626,15 +648,15 @@ function addFileLinksColumn(rows){
 
     if(result != null){
       //console.log("result.file_list", result.file_list);
-      for(var file_path of result.file_list){
+      for(let file_path of result.file_list){
         //console.log("file_path", file_path);
         if(file_path.endsWith(".pdf") || file_path.endsWith(".csv")){
           //console.log("file_path", file_path);
 
-          link_text = basename(file_path);
+          let link_text = basename(file_path);
 
           let linkified_file_path = "<a href='/" + file_path + "'>" + link_text + "</a>";
-          cell_contents += linkified_file_path + ", "
+          cell_contents += linkified_file_path + ", ";
         }
       }
     }
@@ -760,7 +782,6 @@ function showOKModal(message, timeoutMs = 1000) {
   //Autohide after xxx ms
   setTimeout(function () { $("#alert-modal").modal('hide'); }, timeoutMs);
 }
-
 
 var _loaded_analysisPipelines = null;
 
@@ -946,6 +967,16 @@ function getFirstSelectedPipeline() {
   return null; // Return null if no selection or only blank options are selected
 }
 
+function getRowFilter() {
+  const filterElement = document.getElementById("row-filter-text");
+  if (filterElement) {
+    const filter = filterElement.value.trim();
+    return filter.length > 0 ? filter : null;
+  } else {
+    return null;
+  }
+}
+
 function redrawSelectedAnalysisPipeline() {
 
   let pipelineName = getFirstSelectedPipeline();
@@ -984,306 +1015,3 @@ function verifyJson(displayOKResult, ) {
   }
 }
 
-function reloadAnalysisPipelinesUI(selected = "") {
-  apiLoadAnalysisPipelines(selected);
-}
-
-
-function apiRunAnalysis() {
-
-
-  // Check if 'pipelineName' is not blank
-  if(! getFirstSelectedPipeline()){
-    displayModalError("Pipeline is blank. No can do.");
-    return; // Exit the function
-  }
-
-  let formData = new FormData(document.getElementById('main-form'));
-
-  console.log("form data", formData);
-
-  fetch('/api/analysis-pipelines/run', {
-    method: 'POST',
-    body: formData
-    })
-    .then(function (response) {
-      if (response.status === 200) {
-        response.json().then(function (json) {
-
-          $("#run-analysis-modal").modal('hide');
-          showOKModal("Analysis submitted OK");
-        });
-      }
-      else {
-        response.text().then(function (text) {
-          displayModalServerError(response.status, text);
-        });
-      }
-
-    })
-    .catch(function (error) {
-      console.log(error);
-      displayModalError(error);
-    });
-}
-
-function apiGenerateImgset(){
-
-  // delete current content in textarea
-  document.getElementById('imgset-textarea').value = ""
-
-  let name = document.getElementById('save-imgset-name').value;
-
-  console.log("form element", document.getElementById('main-form'));
-
-  let formData = new FormData(document.getElementById('main-form'));
-
-  console.log("form data", formData);
-
-  formData.append("imgset-name", name);
-
-  console.log("form data", formData);
-
-  fetch('/api/imgset/save', {
-    method: 'POST',
-    body: formData
-    })
-    .then(function (response) {
-      if (response.status === 200) {
-        response.text().then(function (text) {
-
-          document.getElementById('imgset-textarea').value = text;
-
-          $("#save-imgset-modal").modal('hide');
-
-        });
-      }
-      else {
-        response.text().then(function (text) {
-          displayModalServerError(response.status, text);
-        });
-      }
-
-    })
-    .catch(function (error) {
-      console.log(error);
-      displayModalError(error);
-    });
-}
-
-
-function apiSaveAnalysisPipeline() {
-  // verify
-  //verifyProtocolStepsJson(false);
-
-  let name = document.getElementById('save-analysis_pipeline-name').value;
-
-  console.log("form element", document.getElementById('main-form'));
-
-  let formData = new FormData(document.getElementById('main-form'));
-
-  console.log("form data", formData);
-
-  formData.append("analysis_pipeline-name", name);
-
-  console.log("form data", formData);
-
-  fetch('/api/analysis-pipelines/save', {
-    method: 'POST',
-    body: formData
-    })
-    .then(function (response) {
-      if (response.status === 200) {
-        response.json().then(function (json) {
-
-          reloadAnalysisPipelinesUI(name);
-          $("#save-analysis_pipeline-modal").modal('hide');
-          showOKModal("Analysis Saved");
-
-        });
-      }
-      else {
-        response.text().then(function (text) {
-          displayModalServerError(response.status, text);
-        });
-      }
-
-    })
-    .catch(function (error) {
-      console.log(error);
-      displayModalError(error);
-    });
-}
-
-function apiDeleteAnalysisPipeline() {
-
-  let deleteName = document.getElementById('delete-analysis_pipeline-name').value;
-  let deleteURL = "/api/analysis-pipelines/delete/" + deleteName;
-
-  fetch(deleteURL)
-    .then(function (response) {
-      if (response.status === 200) {
-        response.json().then(function (json) {
-
-          location.reload();
-          $("#delete-analysis_pipeline-modal").modal('hide');
-          showOKModal("Analysis Deleted");
-
-        });
-      }
-      else {
-        response.text().then(function (text) {
-          displayModalServerError(response.status, text);
-        });
-      }
-
-    })
-    .catch(function (error) {
-      console.log("err", error);
-      displayModalError(error);
-    });
-}
-
-function apiDeleteAnalysis(){
-
-  let deleteID = document.getElementById('delete-analysis-id-input').value;
-  let deleteURL = "/api/analysis/delete/" + deleteID;
-
-  fetch(deleteURL)
-    .then(function (response) {
-      if (response.status === 200) {
-        response.json().then(function (json) {
-
-          location.reload();
-          $("#delete-analysis-modal").modal('hide');
-          showOKModal("Analysis Deleted");
-        });
-      }
-      else {
-        response.text().then(function (text) {
-          displayModalServerError(response.status, text);
-        });
-      }
-
-    })
-    .catch(function (error) {
-      console.log("err", error);
-      displayModalError(error);
-    });
-}
-
-
-function confirmDeleteAnalysis(id){
-  let elem = document.getElementById("delete-analysis-id-input");
-  elem.value = id;
-  $("#delete-analysis-modal").modal();
-
-}
-
-function updateMeta(id, meta){
-  document.getElementById("edit-meta-analysis-id-input").value = id;
-  document.getElementById("edit-meta-input").value = JSON.stringify(meta, null, 2);
-
-  $("#edit-meta-modal").modal();
-
-}
-
-function apiUpdateMeta(){
-
-  let formData = new FormData(document.getElementById('edit-meta-form'));
-
-
-  fetch('/api/analysis/update_meta', {
-    method: 'POST',
-    body: formData
-    })
-    .then(function (response) {
-      if (response.status === 200) {
-        response.json().then(function (json) {
-
-            location.reload();
-            $("#edit-meta-modal").modal('hide');
-            showOKModal("Meta updated");
-          });
-        }
-        else {
-          response.text().then(function (text) {
-            displayModalServerError(response.status, text);
-          });
-        }
-
-      })
-      .catch(function (error) {
-        console.log(error);
-        displayModalError(error);
-      });
-}
-
-
-function editMetaPresetsChanged(){
-  let elem = document.getElementById("edit-meta-presets");
-
-  let preset_text = elem.options[elem.selectedIndex].text;
-  console.log("preset_text",preset_text);
-  var json_text = JSON.parse(preset_text);
-  console.log("json_text",json_text)
-  let pretty_text = JSON.stringify(json_text, null, 2);
-
-  document.getElementById("edit-meta-input").value = pretty_text;
-}
-
-function saveImgsetAsLocalFile() {
-    let textToSave = document.getElementById("imgset-textarea").value;
-    let textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
-    let textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
-  
-    let acq_id = document.getElementById("plate_acq-input").value;
-    let well_filter = document.getElementById("well_filter-input").value;
-    let site_filter = document.getElementById("site_filter-input").value;
-
-    // Create a name
-    let stringsArray = ["imgset", acq_id, well_filter, site_filter];
-    // remove empty parts
-    let joinedString = stringsArray.filter(str => str !== "").join("-");
-    var fileNameToSaveAs = joinedString + ".csv";
-
-    var downloadLink = document.createElement("a");
-    downloadLink.download = fileNameToSaveAs;
-    downloadLink.innerHTML = "Save File";
-    downloadLink.href = textToSaveAsURL;
-    downloadLink.onclick = function(event) {document.body.removeChild(event.target);};
-    downloadLink.style.display = "none";
-    document.body.appendChild(downloadLink);
-    
-    downloadLink.click();
-}
-
-
-
-
-
-function initIndexPage() {
-  console.log("Inside initIndexPage()");
-  //apiCreatePlateAcqTable();
-  apiCreateImageAnalysesTable();
-  apiCreateImageSubAnalysesTable();
-  apiCreateJobsTable();
-}
-
-function initCreateAnalysisPage() {
-  console.log("Inside initCreateAnalysisPage()");
-  apiLoadAnalysisPipelines();
-  apiCreatePipelineFilesTable();
-}
-
-function initRunAnalysisPage() {
-  console.log("Inside initRunAnalysisPage()");
-  apiLoadPlateAcqSelect();
-  apiLoadAnalysisPipelines();
-  apiCreatePlateAcqTable();
-}
-
-function initCellprofilerDevelPage() {
-  console.log("Inside initCellprofilerDevelPage()");
-  apiCreatePlateAcqTable();
-}
