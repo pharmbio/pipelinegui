@@ -1,38 +1,347 @@
 /*
   Javascript version: ECMAScript 6 (Javascript 6)
  */
-class Table{
-  constructor(rows) {
-    this.rows = rows;
-  }
 
-  getHeaders(){
-    return this.rows[0];
-  }
 
-  getCell(nRow, columnName){
-    for(let n = 0; n < this.getColsCount(); n++){
-      if(this.getHeaders()[n] == columnName){
-        return this.rows[nRow +1][n]
+  class DataTable {
+    constructor(apiEndpoint, options = {}) {
+      this.apiEndpoint = apiEndpoint;
+      this.rows = [];
+      this.options = options;
+      this.init();
+    }
+
+    init() {
+      this.fetchAndDrawTable();
+      this.setupOptionalFilterListener();
+    }
+
+
+    fetchAndDrawTable(limit = 1000) {
+      fetch(`${this.apiEndpoint}/${limit}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(json => {
+          this.rows = json['result'];
+          this.applyTransformations(); // Apply transformations (can be overridden by subclasses)
+          this.drawTable();
+        })
+        .catch(error => {
+          console.error('Failed to fetch data:', error);
+          this.handleError(error); // Centralized error handling
+        });
+    }
+
+    setupOptionalFilterListener() {
+      // Only proceed if filterElementId is specified in options
+      if (this.options.filterElementId) {
+        const filterInput = document.getElementById(this.options.filterElementId);
+        // Also check if the element actually exists in the DOM
+        if (filterInput) {
+          let debounceTimer;
+          filterInput.addEventListener('input', () => {
+            // Clear the existing timer on each input to reset the countdown
+            clearTimeout(debounceTimer);
+            
+            debounceTimer = setTimeout(() => {
+              const inputText = filterInput.value;
+              // Apply the filter and redraw table if conditions are met
+              if (inputText.length > 1 || inputText.length === 0) {
+                this.drawTable();
+              }
+            }, 300); // Wait for 300ms after the last input
+          });
+        }
       }
     }
-    return null;
+
+    handleError(error){
+      console.error('Failed to fetch data:', error);
+      // Assuming displayModalError is a function you have defined to show errors
+      displayModalError(error);
+    }
+
+    drawTable() {
+
+      // Optional filtering
+      let filter = this.options.filterElementId ? this.getRowFilter() : null;
+      let filteredRows = [...this.rows];
+      if (filter) {
+        filteredRows = this.filterRows(filter, filteredRows);
+      }
+
+      let container = document.getElementById(this.options.tableDivId); // Assuming tableDivId is passed in options
+
+      // Create Table
+      let table = document.createElement('table');
+      table.id = this.options.tableDivId + "-table"; // Use tableDivId from options
+      table.className = 'table text-xsmall';
+
+      // Clear previous table content
+      container.innerHTML = '';
+
+      console.log('draw table');
+
+      if (filteredRows.length > 0) {
+        // Add header row
+        let headerRow = document.createElement('tr');
+        filteredRows[0].forEach(header => {
+          let headerCell = document.createElement('th');
+          headerCell.textContent = header;
+          headerRow.appendChild(headerCell);
+        });
+        table.appendChild(headerRow);
+
+        // Add data rows
+        for (let i = 1; i < filteredRows.length; i++) {
+          let rowElement = document.createElement('tr');
+          filteredRows[i].forEach(cell => {
+            let cellElement = document.createElement('td');
+
+            if (typeof cell == 'object' && cell !== null) {
+              cellElement.textContent = JSON.stringify(cell);
+            }else{
+              cellElement.innerHTML = cell;
+            }
+
+            // // Check if the cell content is an object and convert to a JSON string if true
+            // if (typeof cell === 'object' && cell !== null) {
+            //   // Optionally, use JSON.stringify(cell, null, 2) for pretty-printed JSON
+            //   console.log("cell is object not null")
+            //   cellElement.textContent = JSON.stringify(cell);
+            // } else {
+            //   console.log("cell is text")
+            //   cellElement.textContent = cell;
+            // }
+            rowElement.appendChild(cellElement);
+          });
+          table.appendChild(rowElement);
+        }
+      } else {
+        let noDataRow = document.createElement('tr');
+        let noDataCell = document.createElement('td');
+        noDataCell.textContent = "No data available";
+        noDataCell.colSpan = filteredRows[0].length;
+        noDataRow.appendChild(noDataCell);
+        table.appendChild(noDataRow);
+      }
+
+      container.appendChild(table);
+      console.log("Table drawn successfully");
+    }
+
+    getRowFilter() {
+      const filterElement = document.getElementById(this.options.filterElementId);
+      if (filterElement) {
+        const filter = filterElement.value.trim();
+        return filter.length > 0 ? filter : null;
+      } else {
+        return null;
+      }
+    }
+
+    filterRows(text, rows){
+      // Always include the header row in the filtered results
+      let filtered = [rows[0]];
+
+      // Now add rows (start from 1 since 0 is headers)
+      for (let row = 1; row < rows.length; row++) {
+          console.log[row]
+          // Check if any column in the current row includes the text as a substring
+          // Convert null or undefined to an empty string before calling .includes()
+          if (rows[row].some(col => (col !== null && col !== undefined ? col.toString() : "").includes(text))) {
+            filtered.push(rows[row]);
+          }
+      }
+
+      return filtered;
+    }
+
+    applyTransformations(){
+      // to be overridden in subclasses
+    }
+
+    addFileLinksColumn(rows) {
+      let cols = rows[0];
+      let resultColIndex = cols.indexOf("result");
+      cols.splice(resultColIndex + 1, 0, "file_list-links");
+  
+      for (let nRow = 1; nRow < rows.length; nRow++) {
+        let result = rows[nRow][resultColIndex];
+        let cellContents = "";
+  
+        if (result != null) {
+          for (let file_path of result.file_list) {
+            if (file_path.endsWith(".pdf") || file_path.endsWith(".csv")) {
+              let linkText = this.basename(file_path);
+              let linkifiedFilePath = `<a href='/${file_path}'>${linkText}</a>`;
+              cellContents += linkifiedFilePath + ", ";
+            }
+          }
+        }
+  
+        rows[nRow].splice(resultColIndex + 1, 0, cellContents);
+      }
+  
+      return rows;
+    }
+  
+    addLinkToBarcodeColumn(rows) {
+      console.log("Inside addLinkToBarcodeColumn");
+  
+      const barcodeColIndex = rows[0].indexOf("plate_barcode");
+      const baseUrl = "https://imagedb.k8s-prod.pharmb.io/?";
+  
+      rows.forEach((row, index) => {
+        if (index > 0) { // Skip header
+          const barcode = row[barcodeColIndex];
+          const linkUrl = `${baseUrl}barcode=${encodeURIComponent(barcode)}`;
+          const newContents = `<a target='imagedb' href='${linkUrl}'>${barcode}</a>`;
+          row[barcodeColIndex] = newContents;
+        }
+      });
+  
+      return rows;
+    }
+  
+    addLinkToErrorColumn(rows) {
+      console.log("Inside addLinkToErrorColumn");
+  
+      const errorColIndex = rows[0].indexOf("error");
+      const idColIndex = rows[0].indexOf("id");
+      const baseUrl = "https://pipelinegui.k8s-prod.pharmb.io/error-log/";
+  
+      rows.forEach((row, index) => {
+        if (index > 0) { // Skip header
+          const error = row[errorColIndex];
+          if (error && error.length > 0) {
+            const id = row[idColIndex];
+            const linkUrl = `${baseUrl}${encodeURIComponent(id)}`;
+            const newContents = `<a target='pipeline-error' href='${linkUrl}'>${error}</a>`;
+            row[errorColIndex] = newContents;
+          }
+        }
+      });
+  
+      return rows;
+    }  
+
+    truncateColumn(rows, columnName, maxLength) {
+      let columnIndex = rows[0].indexOf(columnName);
+      for (let nRow = 1; nRow < rows.length; nRow++) {
+        let content = rows[nRow][columnIndex];
+        if (typeof content == 'object') {
+          content = JSON.stringify(content);
+        }
+        if (content === "null") {
+          content = "";
+        }
+        if (content != null && content.length > maxLength) {
+          content = content.substring(0, maxLength) + ".....";
+        }
+        rows[nRow][columnIndex] = content;
+      }
+      return rows;
+    }
+  
+    basename(str) {
+      let separator = "/";cbcs
+      return str.substr(str.lastIndexOf(separator) + 1);
+    }
+}
+
+class ImageAnalysisTable extends DataTable {
+  constructor(options = {}) {
+    super('/api/list/image_analyses', options);
   }
 
-  getCellColIndex(nRow, nCol){
-    return this.rows[nRow +1][nCol]
+  applyTransformations(){
+        // Apply specific transformations
+        this.rows = this.addControlsColumn(this.rows);
+        this.rows = this.addFileLinksColumn(this.rows);
+        this.rows = this.addLinkToBarcodeColumn(this.rows);
+        this.rows = this.addLinkToErrorColumn(this.rows);
+        this.rows = this.addGoToSubLinkColumn(this.rows);
+        this.rows = this.truncateColumn(this.rows, "result", 100);
+
   }
 
-  getRowsCount(){
-    return this.rows.length - 1;
+  addControlsColumn(rows) {
+    let cols = rows[0];
+    cols.splice(0, 0, "Controls");
+    let idColIndex = cols.indexOf("id") - 1;
+    let idColMeta = cols.indexOf("meta") - 1;
+
+    for (let nRow = 1; nRow < rows.length; nRow++) {
+      let id = rows[nRow][idColIndex];
+      let meta = JSON.stringify(rows[nRow][idColMeta]);
+      let deleteLink = `<a href='#' onClick='confirmDeleteAnalysis(${id});'>Delete</a>`;
+      let stopLink = `<a href='#' onClick='confirmStopAnalysis(${id});'>Stop</a>`;
+      let restartLink = `<a href='#' onClick='confirmRestartAnalysis(${id});'>Restart</a>`;
+      let editMetaLink = `<a href='#' onClick='updateMeta(${id}, ${meta});'>Edit meta</a>`;
+      let newCellContent = deleteLink + "<br>" + stopLink + "<br>" + restartLink + "<br>" + editMetaLink;
+      rows[nRow].splice(0, 0, newCellContent);
+    }
+
+    return rows;
   }
 
-  getColsCount(){
-    return this.rows[0].length;
+  addGoToSubLinkColumn(rows) {
+    console.log("Inside addGoToSubLinkColumn");
+
+    const idColIndex = rows[0].indexOf("id");
+    const baseUrl = "/index.html#";
+
+    rows.forEach((row, index) => {
+      if (index > 0) { // Skip header
+        const id = row[idColIndex];
+        const linkUrl = `${baseUrl}${encodeURIComponent(id)}`;
+        const newContents = `<a href='${linkUrl}'>${id}</a>`;
+        row[idColIndex] = newContents;
+      }
+    });
+
+    return rows;
   }
 
 }
 
+class ImageSubAnalysisTable extends DataTable {
+  constructor(options = {}) {
+    super('/api/list/image_sub_analyses', options);
+  }
+
+  applyTransformations(){
+    this.rows = this.addLinkToBarcodeColumn(this.rows);
+    this.rows = this.truncateColumn(this.rows, "result", 100);
+
+        // add named anchor
+    this.rows = this.addSubAnalysisAnchor(this.rows);
+  }
+
+  addSubAnalysisAnchor(rows){
+
+    console.log("Inside addGoToSubLinkColumn");
+  
+    // Define which column is barcode column
+    let cols = rows[0];
+    let id_col_index = cols.indexOf("analyses_id");
+  
+    // Start from row 1 (0 is headers)
+    for (let nRow = 1; nRow < rows.length; nRow++) {
+      let id = rows[nRow][id_col_index];
+      let new_contents = "<a name='" + id + "'>" + id + "</a>";
+      // replace cell
+      rows[nRow][id_col_index]  = new_contents;
+    }
+    return rows;
+  }
+
+}
 
 function apiCreatePlateAcqTable() {
 
@@ -459,32 +768,6 @@ function addLinkToErrorColumn(rows){
     }
 
 
-  }
-
-  return rows;
-
-}
-
-function addSubAnalysisAnchor(rows){
-
-  console.log("Inside addGoToSubLinkColumn");
-
-  let cols = rows[0];
-
-  // Define which column is barcode column
-  let id_col_index = cols.indexOf("analyses_id");
-
-  let base_url = "https://pipelinegui.k8s-prod.pharmb.io/index.html#";
-
-  // Start from row 1 (0 is headers)
-  for (let nRow = 1; nRow < rows.length; nRow++) {
-
-    let id = rows[nRow][id_col_index];
-
-    let new_contents = "<a name='" + id + "'>" + id + "</a>";
-
-    // replace cell
-    rows[nRow][id_col_index]  = new_contents;
   }
 
   return rows;
@@ -967,16 +1250,6 @@ function getFirstSelectedPipeline() {
   return null; // Return null if no selection or only blank options are selected
 }
 
-function getRowFilter() {
-  const filterElement = document.getElementById("row-filter-text");
-  if (filterElement) {
-    const filter = filterElement.value.trim();
-    return filter.length > 0 ? filter : null;
-  } else {
-    return null;
-  }
-}
-
 function redrawSelectedAnalysisPipeline() {
 
   let pipelineName = getFirstSelectedPipeline();
@@ -1015,3 +1288,306 @@ function verifyJson(displayOKResult, ) {
   }
 }
 
+function reloadAnalysisPipelinesUI(selected = "") {
+  apiLoadAnalysisPipelines(selected);
+}
+
+
+function apiRunAnalysis() {
+
+
+  // Check if 'pipelineName' is not blank
+  if(! getFirstSelectedPipeline()){
+    displayModalError("Pipeline is blank. No can do.");
+    return; // Exit the function
+  }
+
+  let formData = new FormData(document.getElementById('main-form'));
+
+  console.log("form data", formData);
+
+  fetch('/api/analysis-pipelines/run', {
+    method: 'POST',
+    body: formData
+    })
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+          $("#run-analysis-modal").modal('hide');
+          showOKModal("Analysis submitted OK");
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log(error);
+      displayModalError(error);
+    });
+}
+
+function apiGenerateImgset(){
+
+  // delete current content in textarea
+  document.getElementById('imgset-textarea').value = ""
+
+  let name = document.getElementById('save-imgset-name').value;
+
+  console.log("form element", document.getElementById('main-form'));
+
+  let formData = new FormData(document.getElementById('main-form'));
+
+  console.log("form data", formData);
+
+  formData.append("imgset-name", name);
+
+  console.log("form data", formData);
+
+  fetch('/api/imgset/save', {
+    method: 'POST',
+    body: formData
+    })
+    .then(function (response) {
+      if (response.status === 200) {
+        response.text().then(function (text) {
+
+          document.getElementById('imgset-textarea').value = text;
+
+          $("#save-imgset-modal").modal('hide');
+
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log(error);
+      displayModalError(error);
+    });
+}
+
+
+function apiSaveAnalysisPipeline() {
+  // verify
+  //verifyProtocolStepsJson(false);
+
+  let name = document.getElementById('save-analysis_pipeline-name').value;
+
+  console.log("form element", document.getElementById('main-form'));
+
+  let formData = new FormData(document.getElementById('main-form'));
+
+  console.log("form data", formData);
+
+  formData.append("analysis_pipeline-name", name);
+
+  console.log("form data", formData);
+
+  fetch('/api/analysis-pipelines/save', {
+    method: 'POST',
+    body: formData
+    })
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+          reloadAnalysisPipelinesUI(name);
+          $("#save-analysis_pipeline-modal").modal('hide');
+          showOKModal("Analysis Saved");
+
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log(error);
+      displayModalError(error);
+    });
+}
+
+function apiDeleteAnalysisPipeline() {
+
+  let deleteName = document.getElementById('delete-analysis_pipeline-name').value;
+  let deleteURL = "/api/analysis-pipelines/delete/" + deleteName;
+
+  fetch(deleteURL)
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+          location.reload();
+          $("#delete-analysis_pipeline-modal").modal('hide');
+          showOKModal("Analysis Deleted");
+
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log("err", error);
+      displayModalError(error);
+    });
+}
+
+function apiDeleteAnalysis(){
+
+  let deleteID = document.getElementById('delete-analysis-id-input').value;
+  let deleteURL = "/api/analysis/delete/" + deleteID;
+
+  fetch(deleteURL)
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+          location.reload();
+          $("#delete-analysis-modal").modal('hide');
+          showOKModal("Analysis Deleted");
+        });
+      }
+      else {
+        response.text().then(function (text) {
+          displayModalServerError(response.status, text);
+        });
+      }
+
+    })
+    .catch(function (error) {
+      console.log("err", error);
+      displayModalError(error);
+    });
+}
+
+
+function confirmDeleteAnalysis(id){
+  let elem = document.getElementById("delete-analysis-id-input");
+  elem.value = id;
+  $("#delete-analysis-modal").modal();
+
+}
+
+function updateMeta(id, meta){
+  document.getElementById("edit-meta-analysis-id-input").value = id;
+  document.getElementById("edit-meta-input").value = JSON.stringify(meta, null, 2);
+
+  $("#edit-meta-modal").modal();
+
+}
+
+function apiUpdateMeta(){
+
+  let formData = new FormData(document.getElementById('edit-meta-form'));
+
+
+  fetch('/api/analysis/update_meta', {
+    method: 'POST',
+    body: formData
+    })
+    .then(function (response) {
+      if (response.status === 200) {
+        response.json().then(function (json) {
+
+            location.reload();
+            $("#edit-meta-modal").modal('hide');
+            showOKModal("Meta updated");
+          });
+        }
+        else {
+          response.text().then(function (text) {
+            displayModalServerError(response.status, text);
+          });
+        }
+
+      })
+      .catch(function (error) {
+        console.log(error);
+        displayModalError(error);
+      });
+}
+
+
+function editMetaPresetsChanged(){
+  let elem = document.getElementById("edit-meta-presets");
+
+  let preset_text = elem.options[elem.selectedIndex].text;
+  console.log("preset_text",preset_text);
+  let json_text = JSON.parse(preset_text);
+  console.log("json_text",json_text)
+  let pretty_text = JSON.stringify(json_text, null, 2);
+
+  document.getElementById("edit-meta-input").value = pretty_text;
+}
+
+function saveImgsetAsLocalFile() {
+    let textToSave = document.getElementById("imgset-textarea").value;
+    let textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
+    let textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+
+    let acq_id = document.getElementById("plate_acq-input").value;
+    let well_filter = document.getElementById("well_filter-input").value;
+    let site_filter = document.getElementById("site_filter-input").value;
+
+    // Create a name
+    let stringsArray = ["imgset", acq_id, well_filter, site_filter];
+    // remove empty parts
+    let joinedString = stringsArray.filter(str => str !== "").join("-");
+    let fileNameToSaveAs = joinedString + ".csv";
+
+    let downloadLink = document.createElement("a");
+    downloadLink.download = fileNameToSaveAs;
+    downloadLink.innerHTML = "Save File";
+    downloadLink.href = textToSaveAsURL;
+    downloadLink.onclick = function(event) {document.body.removeChild(event.target);};
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+
+    downloadLink.click();
+}
+
+
+
+
+
+function initIndexPage() {
+  console.log("Inside initIndexPage()");
+  //apiCreatePlateAcqTable();
+  //apiCreateImageAnalysesTable();
+  //apiCreateImageSubAnalysesTable();
+  apiCreateJobsTable();
+}
+
+function initCreateAnalysisPage() {
+  console.log("Inside initCreateAnalysisPage()");
+  apiLoadAnalysisPipelines();
+  apiCreatePipelineFilesTable();
+}
+
+function initRunAnalysisPage() {
+  console.log("Inside initRunAnalysisPage()");
+  apiLoadPlateAcqSelect();
+  apiLoadAnalysisPipelines();
+  apiCreatePlateAcqTable();
+}
+
+function initCellprofilerDevelPage() {
+  console.log("Inside initCellprofilerDevelPage()");
+  apiCreatePlateAcqTable();
+}

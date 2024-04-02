@@ -5,15 +5,19 @@
       <!-- Main form -->
       <form id='main-form' onsubmit='return false;'>
 
-        <!-- job-stats-->
-        <div class="d-flex justify-content-between pt-4 pr-3">
-            <div id="job-stats-div" class="container-fluid flex-fill overflow-auto">
-              Total jobs: <span id="n_total_jobs">-</span>,
-              Active: <span id="n_active_jobs">-</span>,
-              Queued: <span id="n_queued_jobs">-</span>,
-              Succeeded: <span id="n_succeeded_jobs">-</span>,
-              Failed: <span id="n_failed_jobs">-</span>
-            </div>
+        <!-- Combined job-stats and Filter input -->
+        <div class="d-flex justify-content-between pt-4 px-3">
+          <div id="job-stats-div" class="flex-fill">
+            Total jobs: <span id="n_total_jobs">-</span>,
+            Active: <span id="n_active_jobs">-</span>,
+            Queued: <span id="n_queued_jobs">-</span>,
+            Succeeded: <span id="n_succeeded_jobs">-</span>,
+            Failed: <span id="n_failed_jobs">-</span>
+          </div>
+
+          <div class="input-group" style="max-width: 200px;">
+            <input type="text" class="form-control" name="filter-input" id="filter-input" placeholder="Filter">
+          </div>
         </div>
 
         <!-- image_analyses table-->
@@ -173,6 +177,24 @@
 
     // Setup UI
     initIndexPage();
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // ImageAnalysesTable
+      const imageAnalysesTableOptions = {
+        tableDivId: 'image_analyses-table-div',
+        filterElementId: 'filter-input' // Only if you have a filter input element
+      };
+      const imageAnalysisTable = new ImageAnalysisTable(imageAnalysesTableOptions);
+
+      // ImageAnalysesTable
+      const imageSubAnalysesTableOptions = {
+        tableDivId: 'image_sub_analyses-table-div',
+        filterElementId: 'filter-input' // Only if you have a filter input element
+      };
+      const imageSubAnalysisTable = new ImageSubAnalysisTable(imageSubAnalysesTableOptions);
+
+    });
 
   </script>
 
