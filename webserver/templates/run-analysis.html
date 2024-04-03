@@ -191,12 +191,12 @@
   <!-- Body inline script -->
   <script>
 
-    // Setup UI
-    initRunAnalysisPage();
-
     document.addEventListener('DOMContentLoaded', function() {
-      var selects = document.querySelectorAll('[id^="analysis_pipelines-select"]');
 
+      // Setup UI
+      initRunAnalysisPage();
+
+      var selects = document.querySelectorAll('[id^="analysis_pipelines-select"]');
       selects.forEach(function(select) {
           select.addEventListener('change', function() {
               // Reset other selects

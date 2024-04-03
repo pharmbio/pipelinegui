@@ -5,35 +5,40 @@
 
   class DataTable {
     constructor(apiEndpoint, options = {}) {
-      this.apiEndpoint = apiEndpoint;
-      this.rows = [];
-      this.options = options;
-      this.init();
+        this.apiEndpoint = apiEndpoint;
+        this.rows = [];
+        this.options = options;
+        // Assign a default limit of 1000 if not specified in options
+        this.limit = options.limit !== undefined ? options.limit : 1000;
+        this.init();
     }
 
     init() {
-      this.fetchAndDrawTable();
-      this.setupOptionalFilterListener();
+        this.fetchAndDrawTable();
+        this.setupOptionalFilterListener();
     }
 
+    fetchAndDrawTable() {
+        // Construct API URL based on whether limit is defined
+        let apiUrl = this.limit ? `${this.apiEndpoint}/${this.limit}` : this.apiEndpoint;
 
-    fetchAndDrawTable(limit = 1000) {
-      fetch(`${this.apiEndpoint}/${limit}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Server error: ${response.status} ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then(json => {
-          this.rows = json['result'];
-          this.applyTransformations(); // Apply transformations (can be overridden by subclasses)
-          this.drawTable();
-        })
-        .catch(error => {
-          console.error('Failed to fetch data:', error);
-          this.handleError(error); // Centralized error handling
-        });
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(json => {
+                this.rows = json['result'];
+                this.pre_transformations_hook()
+                this.applyTransformations(); // Apply transformations (can be overridden by subclasses)
+                this.drawTable();
+            })
+            .catch(error => {
+                console.error('Failed to fetch data:', error);
+                this.handleError(error); // Centralized error handling
+            });
     }
 
     setupOptionalFilterListener() {
@@ -46,7 +51,7 @@
           filterInput.addEventListener('input', () => {
             // Clear the existing timer on each input to reset the countdown
             clearTimeout(debounceTimer);
-            
+
             debounceTimer = setTimeout(() => {
               const inputText = filterInput.value;
               // Apply the filter and redraw table if conditions are met
@@ -63,6 +68,10 @@
       console.error('Failed to fetch data:', error);
       // Assuming displayModalError is a function you have defined to show errors
       displayModalError(error);
+    }
+
+    pre_transformations_hook(){
+      // nothing to do in baseclass
     }
 
     drawTable() {
@@ -169,11 +178,11 @@
       let cols = rows[0];
       let resultColIndex = cols.indexOf("result");
       cols.splice(resultColIndex + 1, 0, "file_list-links");
-  
+
       for (let nRow = 1; nRow < rows.length; nRow++) {
         let result = rows[nRow][resultColIndex];
         let cellContents = "";
-  
+
         if (result != null) {
           for (let file_path of result.file_list) {
             if (file_path.endsWith(".pdf") || file_path.endsWith(".csv")) {
@@ -183,19 +192,19 @@
             }
           }
         }
-  
+
         rows[nRow].splice(resultColIndex + 1, 0, cellContents);
       }
-  
+
       return rows;
     }
-  
+
     addLinkToBarcodeColumn(rows) {
       console.log("Inside addLinkToBarcodeColumn");
-  
+
       const barcodeColIndex = rows[0].indexOf("plate_barcode");
       const baseUrl = "https://imagedb.k8s-prod.pharmb.io/?";
-  
+
       rows.forEach((row, index) => {
         if (index > 0) { // Skip header
           const barcode = row[barcodeColIndex];
@@ -204,17 +213,17 @@
           row[barcodeColIndex] = newContents;
         }
       });
-  
+
       return rows;
     }
-  
+
     addLinkToErrorColumn(rows) {
       console.log("Inside addLinkToErrorColumn");
-  
+
       const errorColIndex = rows[0].indexOf("error");
       const idColIndex = rows[0].indexOf("id");
       const baseUrl = "https://pipelinegui.k8s-prod.pharmb.io/error-log/";
-  
+
       rows.forEach((row, index) => {
         if (index > 0) { // Skip header
           const error = row[errorColIndex];
@@ -226,9 +235,9 @@
           }
         }
       });
-  
+
       return rows;
-    }  
+    }
 
     truncateColumn(rows, columnName, maxLength) {
       let columnIndex = rows[0].indexOf(columnName);
@@ -247,7 +256,7 @@
       }
       return rows;
     }
-  
+
     basename(str) {
       let separator = "/";cbcs
       return str.substr(str.lastIndexOf(separator) + 1);
@@ -326,11 +335,11 @@ class ImageSubAnalysisTable extends DataTable {
   addSubAnalysisAnchor(rows){
 
     console.log("Inside addGoToSubLinkColumn");
-  
+
     // Define which column is barcode column
     let cols = rows[0];
     let id_col_index = cols.indexOf("analyses_id");
-  
+
     // Start from row 1 (0 is headers)
     for (let nRow = 1; nRow < rows.length; nRow++) {
       let id = rows[nRow][id_col_index];
@@ -342,6 +351,119 @@ class ImageSubAnalysisTable extends DataTable {
   }
 
 }
+
+class PlateAcqTable extends DataTable {
+  constructor(options = {}) {
+    super('/api/list/plate_acquisition/', options);
+  }
+
+  applyTransformations(){
+    this.rows = this.addLinkToBarcodeColumn(this.rows);
+  }
+
+}
+
+class JobsTable extends DataTable {
+  constructor(options = {}) {
+    super('/api/list/jobs', options);
+  }
+
+  pre_transformations_hook(){
+    this.drawJobStats()
+  }
+
+  applyTransformations(){
+    this.filterFailedJobsRows()
+    this.addShowLogColumn()
+  }
+
+  filterFailedJobsRows(){
+    let cols = this.rows[0];
+    cols.push("log")
+
+    // Remove rows that are not failed or error
+    let status_col_index = cols.indexOf("STATUS");
+    for (let nRow = this.rows.length -1; nRow > 0; nRow--) {
+      let status = this.addLinkToErrorColumn(this.rows[nRow][status_col_index]);
+      if(status == 'Failed' || status == 'Error'){
+        // Keep row
+      }
+      else{
+        // delete row
+        this.rows.splice(nRow, 1);
+      }
+    }
+  }
+
+  addShowLogColumn(){
+    // Add show log column
+    let cols = this.rows[0];
+    let name_col_index = cols.indexOf("NAME");
+    for (let nRow = 1; nRow < this.rows.length; nRow++) {
+      let job_name = this.rows[nRow][name_col_index];
+      let new_cell_content = "<a href='#' onclick='viewJobLog(\"" + job_name + "\");'>Show log</a>"
+      this.rows[nRow].push(new_cell_content);
+    }
+  }
+
+  addLinkToErrorColumn(){
+    // Define which column is barcode column
+    let cols = this.rows[0];
+    let error_col_index = cols.indexOf("error");
+    let id_col_index = cols.indexOf("id");
+
+    let base_url = "/error-log/";
+
+    // Start from row 1 (0 is headers)
+    for (let nRow = 1; nRow < this.rows.length; nRow++) {
+
+      let error = this.rows[nRow][error_col_index];
+
+      if(error && error.length > 0){
+        console.log("error", error);
+        let id = this.rows[nRow][id_col_index];
+        let link_url = base_url + encodeURI(id);
+        let new_contents = "<a target='pipeline-error' href='" + link_url + "'>" + error + "</a>"
+        // replace cell
+        this.rows[nRow][error_col_index]  = new_contents;
+      }
+    }
+  }
+
+  drawJobStats() {
+    // Calculate stats by looping rows
+    let cols = this.rows[0];
+    let active_col_index = cols.indexOf("ACTIVE");
+    let succeeded_col_index = cols.indexOf("SUCCEEDED");
+    let failed_col_index = cols.indexOf("FAILED");
+
+    let active = 0;
+    let succeeded = 0;
+    let failed = 0;
+
+    for (let nRow = 1; nRow < this.rows.length; nRow++) {
+      active +=  parseInt(this.rows[nRow][active_col_index]);
+      succeeded +=  parseInt(this.rows[nRow][succeeded_col_index]);
+      failed +=  parseInt(this.rows[nRow][failed_col_index]);
+    }
+
+    let total = this.rows.length -1; // -1 because of Header row
+    let queued = total - active - succeeded - failed;
+
+    document.getElementById("n_total_jobs").textContent = total;
+    document.getElementById("n_active_jobs").textContent = active;
+    document.getElementById("n_succeeded_jobs").textContent = succeeded;
+    document.getElementById("n_queued_jobs").textContent = queued;
+    document.getElementById("n_failed_jobs").textContent = failed;
+  }
+}
+
+class PipelineFilesTable extends DataTable {
+  constructor(options = {}) {
+    super('/api/list/pipelinefiles', options);
+  }
+}
+
 
 function apiCreatePlateAcqTable() {
 
@@ -1562,32 +1684,47 @@ function saveImgsetAsLocalFile() {
     downloadLink.click();
 }
 
-
-
-
-
 function initIndexPage() {
   console.log("Inside initIndexPage()");
-  //apiCreatePlateAcqTable();
-  //apiCreateImageAnalysesTable();
-  //apiCreateImageSubAnalysesTable();
-  apiCreateJobsTable();
+
+  new ImageAnalysisTable({
+    tableDivId: 'image_analyses-table-div',
+    filterElementId: 'filter-input' // Only if you have a filter input element
+  });
+
+  new ImageSubAnalysisTable({
+    tableDivId: 'image_sub_analyses-table-div',
+    filterElementId: 'filter-input' // Only if you have a filter input element
+  });
+
+  new JobsTable({
+    tableDivId: 'jobs-table-div',
+    limit: null
+  });
+
 }
 
 function initCreateAnalysisPage() {
-  console.log("Inside initCreateAnalysisPage()");
   apiLoadAnalysisPipelines();
-  apiCreatePipelineFilesTable();
+
+  new PipelineFilesTable({
+    tableDivId: 'pipelinefiles-table-div',
+    limit: null
+  });
 }
 
 function initRunAnalysisPage() {
-  console.log("Inside initRunAnalysisPage()");
   apiLoadPlateAcqSelect();
   apiLoadAnalysisPipelines();
-  apiCreatePlateAcqTable();
+
+  new PlateAcqTable({
+    tableDivId: 'plate-acq-table-div'
+  });
+
 }
 
 function initCellprofilerDevelPage() {
-  console.log("Inside initCellprofilerDevelPage()");
-  apiCreatePlateAcqTable();
+  new PlateAcqTable({
+    tableDivId: 'plate-acq-table-div'
+  });
 }

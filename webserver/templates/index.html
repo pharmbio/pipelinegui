@@ -176,23 +176,9 @@
   <script>
 
     // Setup UI
-    initIndexPage();
-
     document.addEventListener('DOMContentLoaded', () => {
 
-      // ImageAnalysesTable
-      const imageAnalysesTableOptions = {
-        tableDivId: 'image_analyses-table-div',
-        filterElementId: 'filter-input' // Only if you have a filter input element
-      };
-      const imageAnalysisTable = new ImageAnalysisTable(imageAnalysesTableOptions);
-
-      // ImageAnalysesTable
-      const imageSubAnalysesTableOptions = {
-        tableDivId: 'image_sub_analyses-table-div',
-        filterElementId: 'filter-input' // Only if you have a filter input element
-      };
-      const imageSubAnalysisTable = new ImageSubAnalysisTable(imageSubAnalysesTableOptions);
+      initIndexPage();
 
     });
 
