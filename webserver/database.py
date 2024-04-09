@@ -77,13 +77,13 @@ class Database:
         params = [acq_id]
 
         # Dynamically build query based on filters
-        if site_filter and len(site_filter) > 0:
+        if site_filter and len(site_filter) > 0 and site_filter[0] != None:
             logging.info(f'site_filter {site_filter}')
             logging.info(len(site_filter))
             query += " AND site IN %s"
             params.append(tuple(site_filter))  # Add site_filter as tuple to params
 
-        if well_filter and len(well_filter) > 0:
+        if well_filter and len(well_filter) > 0 and well_filter[0] != None:
             query += " AND well IN %s"
             params.append(tuple(well_filter))  # Add well_filter as tuple to params
 

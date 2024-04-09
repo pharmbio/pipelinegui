@@ -23,7 +23,7 @@ def make_imgsets_from_images(images):
 
         logging.debug(f'img: {img["path"]}')
         # readability
-        imgset_key = f"{img['well']}-{img['site']}"
+        imgset_key = f"{img['plate_acquisition_id']}-{img['well']}-{img['site']}"
 
         imgsets.setdefault(imgset_key, []).append(img)
 

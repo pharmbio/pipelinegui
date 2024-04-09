@@ -154,17 +154,19 @@
     }
 
     filterRows(text, rows){
+      // Convert the search text to lower case outside the loop for efficiency
+      let lowerCaseText = text.toLowerCase();
+
       // Always include the header row in the filtered results
       let filtered = [rows[0]];
 
       // Now add rows (start from 1 since 0 is headers)
       for (let row = 1; row < rows.length; row++) {
-          console.log[row]
-          // Check if any column in the current row includes the text as a substring
-          // Convert null or undefined to an empty string before calling .includes()
-          if (rows[row].some(col => (col !== null && col !== undefined ? col.toString() : "").includes(text))) {
-            filtered.push(rows[row]);
-          }
+        // Check if any column in the current row includes the text as a substring, case-insensitively
+        // Convert null or undefined to an empty string before calling .includes()
+        if (rows[row].some(col => (col !== null && col !== undefined ? col.toString().toLowerCase() : "").includes(lowerCaseText))) {
+          filtered.push(rows[row]);
+        }
       }
 
       return filtered;

@@ -304,40 +304,69 @@ class SaveAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
         self.finish({'results':results})
 
 
-class SaveImgsetQueryHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
-    """
-    The query handler handles form posts and returns list of results.
-    """
+class SaveImgsetQueryHandler(tornado.web.RequestHandler):
     def post(self):
-        """Handles POST requests."""
-        # Log all input parameters
         logging.info("%r %s", self.request, self.request.body.decode())
 
         try:
-            acq_id = int(self.get_argument("plate_acq-input"))
-            site_filter = self.get_argument("site_filter-input").strip().split(',')
-            # If the resulting list only contains an empty string, set it to None
-            if len(site_filter) == 1 and not site_filter[0]:
-                site_filter = None
-            well_filter = self.get_argument("well_filter-input").strip().split(',')
-            if len(well_filter) == 1 and not well_filter[0]:
-                well_filter = None
+
+            multi_filter_input = self.get_argument("multi_filter-input").strip()
+            if multi_filter_input == '':
+                multi_filters = None
+            else:
+                multi_filters = multi_filter_input.split(',')
+
+            if not multi_filters or len(multi_filters) == 0:
+                # Split acq_id input into a list of integers
+                acq_ids = [int(acq_id.strip()) for acq_id in self.get_argument("plate_acq-input").split(',')]
+                # Process site filters, defaulting to [None] if no filter is provided
+                site_filters = self.get_argument("site_filter-input").strip().split(',')
+                site_filters = [None] if len(site_filters) == 1 and not site_filters[0] else site_filters
+                # Process well filters, defaulting to [None] if no filter is provided
+                well_filters = self.get_argument("well_filter-input").strip().split(',')
+                well_filters = [None] if len(well_filters) == 1 and not well_filters[0] else well_filters
+
+
         except ValueError as e:
-            logging.error(f"Error converting parameters to integers: {e}")
+            logging.error(f"Error processing input parameters: {e}")
             self.set_status(400)
-            self.write("Invalid input parameters. plate_acq-input and \n"
-                       "site_filter-input should be integers.")
+            self.write("Invalid input parameters. plate_acq-input should be integers.")
             return
 
-        # Check for the 'include-icf-cbx' parameter to set use_icf
         include_icf = self.get_argument("include-icf-cbx", None)
         use_icf = include_icf == "on"
-        icf_path = None if not use_icf else "/cpp_work/devel/icf_npy/" # Set this accordingly
+        icf_path = None if not use_icf else "/cpp_work/devel/icf_npy/"
 
-        imgsets = cellprofiler_utils.get_imgsets(acq_id, well_filter, site_filter)
-        database = Database.get_instance()
-        channel_map = database.get_channel_map_from_acq_id(acq_id)
-        imgset_csv = cellprofiler_utils.get_cellprofiler_imgsets_csv(imgsets, channel_map, use_icf, icf_path)
+        all_imgsets = {}
+        channel_map = None
+        logging.info(f'multi {multi_filters}')
+        if multi_filters and len(multi_filters) > 0 and multi_filters != None:
+            for filter in multi_filters:
+                parts = filter.split('_')
+                acq_id = parts[0]
+                # Check if well_filter exists; if not, set it to [None]
+                well_filters = [parts[1]] if len(parts) > 1 else [None]
+                # Check if site_filter exists; if not, set it to [None]
+                site_filters = [parts[2]] if len(parts) > 2 else [None]
+
+                imgsets = cellprofiler_utils.get_imgsets(acq_id, well_filters, site_filters)
+                all_imgsets.update(imgsets)
+
+                database = Database.get_instance()
+                channel_map = database.get_channel_map_from_acq_id(acq_id)
+
+        else:
+            for acq_id in acq_ids:
+                # Fetch imgsets for each acq_id
+                imgsets = cellprofiler_utils.get_imgsets(acq_id, well_filters, site_filters)
+                all_imgsets.update(imgsets)
+
+                database = Database.get_instance()
+                channel_map = database.get_channel_map_from_acq_id(acq_id)
+
+        logging.info(f"{all_imgsets}")
+
+        imgset_csv = cellprofiler_utils.get_cellprofiler_imgsets_csv(all_imgsets, channel_map, use_icf, icf_path)
 
         self.set_header("Content-type", "text/plain")
         self.write(imgset_csv)
