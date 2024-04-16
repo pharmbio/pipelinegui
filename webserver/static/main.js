@@ -275,9 +275,11 @@ class ImageAnalysisTable extends DataTable {
         this.rows = this.addControlsColumn(this.rows);
         this.rows = this.addFileLinksColumn(this.rows);
         this.rows = this.addLinkToBarcodeColumn(this.rows);
+        this.rows = this.addSegmentationLinkColumn(this.rows);
         this.rows = this.addLinkToErrorColumn(this.rows);
         this.rows = this.addGoToSubLinkColumn(this.rows);
         this.rows = this.truncateColumn(this.rows, "result", 100);
+
 
   }
 
@@ -314,6 +316,42 @@ class ImageAnalysisTable extends DataTable {
         const newContents = `<a href='${linkUrl}'>${id}</a>`;
         row[idColIndex] = newContents;
       }
+    });
+
+    return rows;
+  }
+
+  addSegmentationLinkColumn(rows) {
+    console.log("Adding Segmentation Link Column");
+
+    const cols = rows[0];
+    const idColIndex = cols.indexOf("id");
+    const metaColIndex = cols.indexOf("meta");
+
+    // Add a header for the new column if it doesn't already exist
+    const segmentationLinkColumnIndex = cols.indexOf("Segmentation Links");
+    if (segmentationLinkColumnIndex === -1) {
+        cols.splice(10, 0, "Segmentation Links");  // You might need to adjust the index as needed
+    }
+
+    // Process each data row
+    rows.slice(1).forEach(row => {
+        const id = row[idColIndex];
+        const meta = row[metaColIndex];
+        let cellContents = "";
+
+        // Check if the meta data qualifies for a segmentation link
+        if (meta && meta['type'] && meta['type'].includes("cp-features")) {
+            const linkUrl = `segmentation/${id}`;
+            cellContents = `<a target='segmentation' href='${linkUrl}'>Segmentation</a>`;
+        }
+
+        // Insert the new cell into the row
+        if (segmentationLinkColumnIndex === -1) {
+            row.splice(10, 0, cellContents);
+        } else {
+            row[segmentationLinkColumnIndex] = cellContents;
+        }
     });
 
     return rows;
