@@ -259,6 +259,21 @@
       return rows;
     }
 
+    stringifyColumn(rows, columnName) {
+      let columnIndex = rows[0].indexOf(columnName);
+      for (let nRow = 1; nRow < rows.length; nRow++) {
+        let content = rows[nRow][columnIndex];
+        if (typeof content == 'object') {
+          content = JSON.stringify(content);
+        }
+        if (content === "null") {
+          content = "";
+        }
+        rows[nRow][columnIndex] = content;
+      }
+      return rows;
+    }
+
     basename(str) {
       let separator = "/";cbcs
       return str.substr(str.lastIndexOf(separator) + 1);
@@ -367,8 +382,9 @@ class ImageSubAnalysisTable extends DataTable {
   applyTransformations(){
     this.rows = this.addLinkToBarcodeColumn(this.rows);
     this.rows = this.truncateColumn(this.rows, "result", 100);
+    this.rows = this.stringifyColumn(this.rows, "meta");
 
-        // add named anchor
+    // add named anchor
     this.rows = this.addSubAnalysisAnchor(this.rows);
   }
 
