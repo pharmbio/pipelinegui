@@ -51,6 +51,7 @@ class ListPlateAcqHandler(tornado.web.RequestHandler): #pylint: disable=abstract
 
         result = dbqueries.list_plate_acquisitions()
 
+        logging.info("done ListPlateAcqHandler, limit=" + str(limit))
         #logging.debug(result)
         self.finish({'result':result})
 
@@ -67,6 +68,8 @@ class ListImageAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=abs
         logging.info("inside ListImageAnalysesHandler, limit=" + str(limit))
 
         result = dbqueries.list_image_analyses(limit)
+
+        logging.info("done ListImageAnalysesHandler, limit=" + str(limit))
 
         #logging.debug(result)
         self.finish({'result':result})
@@ -85,6 +88,8 @@ class ListImageSubAnalysesHandler(tornado.web.RequestHandler): #pylint: disable=
 
         result = dbqueries.list_image_sub_analyses(limit)
 
+        logging.info("done ListImageSubAnalysesHandler, limit=" + str(limit))
+
         #logging.debug(result)
         self.finish({'result':result})
 
@@ -101,6 +106,8 @@ class ListJobsHandler(tornado.web.RequestHandler): #pylint: disable=abstract-met
         logging.info("inside ListJobsHandler")
 
         result = kubeutils.list_jobs()
+
+        logging.info("done ListJobsHandler")
 
         #logging.debug(result)
         self.finish({'result':result})
@@ -119,7 +126,7 @@ class ListPipelinefilesHandler(tornado.web.RequestHandler): #pylint: disable=abs
 
         result = fileutils.list_pipelinefiles()
 
-        logging.debug(result)
+        logging.info("done ListPipelinefilesHandler")
         self.finish({'result':result})
 
 
@@ -152,6 +159,7 @@ class ListJobLogHandler(tornado.web.RequestHandler): #pylint: disable=abstract-m
         """
         logging.info("job_name: " + str(job_name))
         result = kubeutils.get_job_log(job_name)
+        logging.info("done job_name: " + str(job_name))
 
         logging.debug(result)
         self.finish({'result':result})

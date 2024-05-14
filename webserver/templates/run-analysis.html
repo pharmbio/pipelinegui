@@ -128,11 +128,9 @@
         <div id="toolbar-div" class="container-fluid mt-2 mb-2">
 
           <div class="input-group align-bottom">
-
             <!-- Run button-->
             <button type="button" id="run-button" class="btn btn-warning ml-2" data-toggle="modal"
               data-target="#run-analysis-modal">Run</button>
-
           </div>
 
         </div>
@@ -161,7 +159,6 @@
 
 {% block dialogs %}
 
-
   <!-- Modal dialog "Run analysis ...." -->
   <div class="modal" id="run-analysis-modal" tabindex="-1" role="dialog" aria-labelledby="run-protocolLabel"
     aria-hidden="true">
@@ -183,6 +180,21 @@
       </div>
     </div>
   </div>
+
+  <!-- Alert modal alert OK-->
+  <div class="modal" id="alert-modal">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header bg-success">
+          <h5 class="modal-title"></h5>
+        </div>
+        <div class="modal-body" id="alert-modal-body-div">
+          Default message
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
 {% end %}
 
 
