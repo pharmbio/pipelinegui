@@ -129,8 +129,7 @@
 
           <div class="input-group align-bottom">
             <!-- Run button-->
-            <button type="button" id="run-button" class="btn btn-warning ml-2" data-toggle="modal"
-              data-target="#run-analysis-modal">Run</button>
+            <button type="button" id="run-button" class="btn btn-warning ml-2">Run</button>
           </div>
 
         </div>
@@ -148,9 +147,6 @@
         </div>
         <div id="plate-acq-table-div" class="container-fluid flex-fill">
         </div>
-
-
-
 
       </form>
 
@@ -170,7 +166,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body">
+        <div id="runAnalysisModalBody" class="modal-body">
           Are you sure you want to run this analysis :-)
         </div>
         <div class="modal-footer">
@@ -207,6 +203,11 @@
 
       // Setup UI
       initRunAnalysisPage();
+
+      // Attach event listeners
+      $('#run-button').click(function () {
+        verifyRunAnalysisInputData();
+      });
 
       var selects = document.querySelectorAll('[id^="analysis_pipelines-select"]');
       selects.forEach(function(select) {

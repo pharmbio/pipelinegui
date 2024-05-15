@@ -1220,7 +1220,6 @@ function drawTable(rows, divname) {
   container.append(table)
 
   console.log("drawTable finished")
-
 }
 
 function displayModalServerError(status, text) {
@@ -1234,6 +1233,13 @@ function displayModalJavaScriptError(message, source, lineno, colno, error) {
 
 function displayModalError(text) {
   document.getElementById('errordiv').innerHTML = "<pre>" + text + "</pre>";
+  document.getElementById('errormodalLabel').innerHTML = "Error";
+  $("#error-modal").modal();
+}
+
+function displayModalMessage(text) {
+  document.getElementById('errordiv').innerHTML = "" + text;
+  document.getElementById('errormodalLabel').innerHTML = "Problem";
   $("#error-modal").modal();
 }
 
@@ -1470,9 +1476,116 @@ function reloadAnalysisPipelinesUI(selected = "") {
   apiLoadAnalysisPipelines(selected);
 }
 
+function parsePlateAcquisitionInput(input) {
+  let result = [];
+
+  // Split the input by commas
+  let parts = input.split(',').map(part => part.trim());
+
+  for (let part of parts) {
+      if (part.includes('-')) {
+          // Handle range, e.g., "1000-1003" or "1000 - 2000"
+          let [start, end] = part.split('-').map(num => parseInt(num.trim(), 10));
+          if (!isNaN(start) && !isNaN(end) && start <= end) {
+              for (let i = start; i <= end; i++) {
+                  result.push(i);
+              }
+          } else {
+              console.error(`Invalid range: ${part}`);
+          }
+      } else {
+          // Handle single integer
+          let num = parseInt(part, 10);
+          if (!isNaN(num)) {
+              result.push(num);
+          } else {
+              console.error(`Invalid number: ${part}`);
+          }
+      }
+  }
+  return result;
+}
+
+function verifyRunAnalysisInputData(){
+
+  let acq_id = document.getElementById("plate_acq-input").value;
+  let well_filter = document.getElementById("well_filter-input").value.trim();
+  let site_filter = document.getElementById("site_filter-input").value.trim();
+  let priority = document.getElementById("priority-input").value.trim();
+
+
+  /// Check if priority is 1
+  if (parseInt(priority, 10) === 1) {
+
+      // Check if both well_filter and site_filter are empty
+      if (!well_filter && !site_filter) {
+        alert("Priority 1 is reserved for short jobs where well and/or site filter is applied");
+        return; // Exit the function to prevent showing the modal
+      }
+
+  }
+
+  // Check well filter format
+  if (well_filter) {
+    // Split well_filter by commas and trim each value
+    let wellFilters = well_filter.split(',').map(filter => filter.trim());
+
+    // Validate each well filter
+    const wellFilterRegex = /^[A-Z][0-9]{2}$/;
+    for (let filter of wellFilters) {
+        if (!wellFilterRegex.test(filter)) {
+            // Well filter is not in the correct format
+            alert();
+            displayModalMessage("Well must be a capital letter followed by exactly two digits (e.g., A01, B12).");
+            return; // Exit function if validation fails
+        }
+    }
+  }
+
+  // Check if 'pipelineName' is not blank
+  pipeline = getFirstSelectedPipeline()
+  if(! pipeline){
+    displayModalMessage("Pipeline is blank. No can do.");
+    return; // Exit the function
+  }
+
+  // plate_acquisition can be comma separated integer
+  // the value can also be a range specified as 1000-1003
+  let plateAcqs = parsePlateAcquisitionInput(acq_id);
+  let acqIdString = plateAcqs.join(', ');
+
+  // Set dialog
+  message = "Do you want to run this analysis?<br><br>PlateAcqID: " + acqIdString + "<br><br>Pipeline: " + pipeline + ""
+  if (priority) {
+    message += "<br><br>Priority: " + priority;
+  }
+ 
+  if (well_filter) {
+    message += "<br><br>Well-Filter: " + well_filter;
+  }
+  if (site_filter) {
+    message += "<br><br>Site-Filter: " + site_filter;
+  }
+
+  // Check if the checkbox is checked
+  const runUppmaxCbx = document.getElementById('run-uppmax-cbx');
+  if (runUppmaxCbx && runUppmaxCbx.checked) {
+    message += "<br><br>Run-on-uppmax: True";
+  }
+
+    // Check if the checkbox is checked
+    const runDardelCbx = document.getElementById('run-dardel-cbx');
+    if (runDardelCbx && runDardelCbx.checked) {
+      message += "<br><br>Run-on-dardel: True";
+    }
+
+  document.getElementById('runAnalysisModalBody').innerHTML = message;
+  $('#run-analysis-modal').modal('show');
+
+}
+
 
 function apiRunAnalysis() {
-
 
   // Check if 'pipelineName' is not blank
   if(! getFirstSelectedPipeline()){
