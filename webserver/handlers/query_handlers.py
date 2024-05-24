@@ -4,6 +4,7 @@ This is where most of the logic goes.
 """
 import logging
 import os
+import json
 
 import tornado.web
 import datetime
@@ -422,24 +423,120 @@ class ListAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
         self.finish({'result':result})
 
 
-class ErrorLogHandler(tornado.web.RequestHandler): #pylint: disable=abstract-method
+class ErrorLogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
 
     def get(self, analysis_id):
-        """Handles GET requests.
-        """
+        """Handles GET requests."""
 
         logging.info(f"ErrorLogHandler, id: {analysis_id}")
 
-        analysis_info = dbqueries.select_image_analyses(analysis_id)
+        error_msg = self._create_error_message(analysis_id)
 
+        error_msg = f"{error_msg}"
+
+        self.render('error-log.html', error_msg=error_msg)
+
+    def _create_error_message(self, analysis_id):
+        analysis_info = dbqueries.select_image_analyses(analysis_id)
         sub_analyses = dbqueries.select_image_sub_analyses(analysis_id)
 
-        logging.info(sub_analyses)
+        error_msg = ""
+        for sub in sub_analyses:
+            msg = self._create_sub_error_message(sub)
+            error_msg += f"{msg}<br><br>"
 
-        self.render('error-log.html', analysis_id=analysis_id,
-                                      analysis_info=analysis_info,
-                                      sub_analyses=sub_analyses)
+        return error_msg
 
+    def _create_sub_error_message(self, sub):
+        id = sub['sub_id']
+
+        msg = []
+        msg.append(f"sub_id: {id}")
+        msg.append(f"analysis_id: {sub['analysis_id']}")
+        msg.append(f"acq_id: {sub['plate_acquisition_id']}")
+        msg.append(f"input_path: /cpp_work/input/{id}/")
+        out_path = f"/cpp_work/output/{id}/"
+        msg.append(f"out_path: {out_path}")
+        msg.append(f"start: {sub['start']}")
+        msg.append(f"finish: {sub['finish']}")
+        msg.append(f"error: {sub['error']}")
+
+
+        pretty_meta = json.dumps(sub['meta'], indent=2)
+        msg.append(f"meta:<pre>{pretty_meta}</pre>")
+
+        error_paths = self._get_error_job_paths(out_path, 10)
+
+        header_added = False
+        for path in error_paths:
+            if not header_added:
+                msg.append(f"<b>jobs with error status, their cellprofiler log and input.csv (displaying up to 10 jobs):</b><br>")
+                header_added = True
+            msg.append(f"job_path: {path}<br>")
+
+            log_file = os.path.join(path, "cp.log")
+            log_file_content = self._read_file_to_string(log_file)
+            msg.append(f"cellprofiler log:<pre>{log_file_content}</pre>")
+
+            input_csv_path = self._get_input_csv_path_from_out_path(path)
+            input_csv = self._read_file_to_string(input_csv_path)
+            # TODO pretty print this
+            msg.append(f"input.csv:<pre>{input_csv}</pre>")
+
+            msg.append("###################################################################################################################<br>")
+
+        return '<br>'.join(msg)
+
+    def _get_error_job_paths(self, sub_out_path, limit=10):
+        root = sub_out_path
+        error_paths = []
+        try:
+            # List the first-level subdirectories
+            subdirs = [os.path.join(root, subdir) for subdir in os.listdir(root) if os.path.isdir(os.path.join(root, subdir))]
+
+            # Check each subdirectory for the "error" file
+            for subdir in subdirs:
+                error_file_path = os.path.join(subdir, "error")
+                if os.path.isfile(error_file_path):
+                    error_paths.append(subdir)
+
+                    # Break if we have reached the limit
+                    if len(error_paths) >= limit:
+                        break
+        except Exception as e:
+            logging.error(f"An error occurred while fetching error job paths: {e}")
+
+        return error_paths
+
+    def _get_input_csv_path_from_out_path(self, output_path):
+        # Split the output path into parts
+        path_parts = output_path.split('/')
+
+        # Replace 'output' with 'input'
+        path_parts[2] = 'input'
+
+        # Construct the new path with the .csv extension
+        new_path = '/'.join(path_parts) + '.csv'
+
+        return new_path
+
+    def _read_file_to_string(self, file_path):
+        """
+        Reads the content of the specified file and returns it as a string.
+
+        :param file_path: Path to the file to be read
+        :return: Content of the file as a string, or None if an error occurs
+        """
+        try:
+            with open(file_path, 'r') as file:
+                content = file.read()
+            return content
+        except FileNotFoundError:
+            logging.error(f"The file {file_path} does not exist.")
+            return None
+        except Exception as e:
+            logging.error(f"An error occurred while reading the file {file_path}: {e}")
+            return None
 
 IMAGE_EXTENSIONS = (".tif", ".tiff", ".png", ".jpg", ".jpeg", ".bmp")
 def get_image_files(base_dir, limit):

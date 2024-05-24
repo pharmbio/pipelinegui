@@ -14,7 +14,7 @@ import settings as pipelinegui_settings
 from database import Database
 
 SETTINGS = {
-    'debug': False,
+    'debug': True,
     'develop': True,
     'template_path':'templates/',
     'xsrf_cookies': False, # Anders disabled this - TODO enable again....maybe...

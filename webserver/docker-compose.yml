@@ -5,15 +5,6 @@ networks:
     external:
       name: traefik_web
 
-volumes:
-  # Webroot
-  pipelinegui-webroot-bind:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${WEBROOT?You need to specify env WEBROOT, e.g. WEBROOT=/home/anders/projekt/pipelinegui/webserver}
-      o: bind
-
 services:
   pipelineguiweb:
     build:
@@ -40,6 +31,6 @@ services:
     networks:
       - traefik_web
     volumes:
-      - pipelinegui-webroot-bind:/app
+      - .:/app
       - ../kube_config/:/kube
-      - /share/data2/cellprofiler/debug-automation/:/cpp_work # mount the work and result nfs share from the fs of the dev node
+      - /share/data2/cellprofiler/automation/:/cpp_work # mount the work and result nfs share from the fs of the dev node

@@ -224,7 +224,7 @@
 
       const errorColIndex = rows[0].indexOf("error");
       const idColIndex = rows[0].indexOf("id");
-      const baseUrl = "https://pipelinegui.k8s-prod.pharmb.io/error-log/";
+      const baseUrl = "/error-log/";
 
       rows.forEach((row, index) => {
         if (index > 0) { // Skip header
@@ -917,19 +917,16 @@ function addGoToSubLinkColumn(rows){
 }
 
 
+function addLinkToErrorColumn_old(rows){
 
-
-function addLinkToErrorColumn(rows){
-
-  console.log("Inside addLinkToErrorColumn", rows);
+  console.log("Inside addLinkToErrorColumn_old", rows);
 
   let cols = rows[0];
 
-  // Define which column is barcode column
   let error_col_index = cols.indexOf("error");
   let id_col_index = cols.indexOf("id");
 
-  let base_url = "https://pipelinegui.k8s-prod.pharmb.io/error-log/";
+  let base_url = "/error-log/";
 
   // Start from row 1 (0 is headers)
   for (let nRow = 1; nRow < rows.length; nRow++) {
@@ -1506,7 +1503,78 @@ function parsePlateAcquisitionInput(input) {
   return result;
 }
 
-function verifyRunAnalysisInputData(){
+function getTrimmedInputValue(elementId) {
+  return document.getElementById(elementId).value.trim();
+}
+
+function isPriorityOneWithoutFilters(priority, wellFilter, siteFilter) {
+  return parseInt(priority, 10) === 1 && !wellFilter && !siteFilter;
+}
+
+function isValidWellFilter(wellFilter) {
+  const wellFilters = wellFilter.split(',').map(filter => filter.trim());
+  const wellFilterRegex = /^[A-Z][0-9]{2}$/;
+
+  return wellFilters.every(filter => wellFilterRegex.test(filter));
+}
+
+function isCheckboxChecked(checkboxId) {
+  const checkbox = document.getElementById(checkboxId);
+  return checkbox && checkbox.checked;
+}
+
+function verifyRunAnalysisInputData() {
+  const getTrimmedInputValue = getInputValue('plate_acq-input');
+  const wellFilter = getTrimmedInputValue('well_filter-input');
+  const siteFilter = getTrimmedInputValue('site_filter-input');
+  const priority = getTrimmedInputValue('priority-input');
+
+  if (isPriorityOneWithoutFilters(priority, wellFilter, siteFilter)) {
+      alert("Priority 1 is reserved for short jobs where well and/or site filter is applied");
+      return;
+  }
+
+  if (wellFilter && !isValidWellFilter(wellFilter)) {
+      displayModalMessage("Well must be a capital letter followed by exactly two digits (e.g., A01, B12).");
+      return;
+  }
+
+  const pipeline = getFirstSelectedPipeline();
+  if (!pipeline) {
+      displayModalMessage("Pipeline is blank. No can do.");
+      return;
+  }
+
+  const plateAcqs = parsePlateAcquisitionInput(acqId);
+
+  let message = `PlateAcqID: ${plateAcqs.join(', ')}<br><br>Pipeline: ${pipeline}`;
+
+  if (priority) {
+      message += `<br><br>Priority: ${priority}`;
+  }
+  if (wellFilter) {
+      message += `<br><br>Well-Filter: ${wellFilter}`;
+  }
+  if (siteFilter) {
+      message += `<br><br>Site-Filter: ${siteFilter}`;
+  }
+
+  if (isCheckboxChecked('run-uppmax-cbx')) {
+      message += `<br><br>Run-on-uppmax: True`;
+  }
+
+  if (isCheckboxChecked('run-dardel-cbx')) {
+      message += `<br><br>Run-on-dardel: True`;
+  }
+
+  document.getElementById('runAnalysisModalBody').innerHTML = message;
+  $('#run-analysis-modal').modal('show');
+
+}
+
+
+
+function verifyRunAnalysisInputData_old(){
 
   let acq_id = document.getElementById("plate_acq-input").value;
   let well_filter = document.getElementById("well_filter-input").value.trim();
@@ -1520,9 +1588,8 @@ function verifyRunAnalysisInputData(){
       // Check if both well_filter and site_filter are empty
       if (!well_filter && !site_filter) {
         alert("Priority 1 is reserved for short jobs where well and/or site filter is applied");
-        return; // Exit the function to prevent showing the modal
+        return;
       }
-
   }
 
   // Check well filter format
@@ -1537,7 +1604,7 @@ function verifyRunAnalysisInputData(){
             // Well filter is not in the correct format
             alert();
             displayModalMessage("Well must be a capital letter followed by exactly two digits (e.g., A01, B12).");
-            return; // Exit function if validation fails
+            return;
         }
     }
   }
@@ -1546,20 +1613,20 @@ function verifyRunAnalysisInputData(){
   pipeline = getFirstSelectedPipeline()
   if(! pipeline){
     displayModalMessage("Pipeline is blank. No can do.");
-    return; // Exit the function
+    return;
   }
 
-  // plate_acquisition can be comma separated integer
-  // the value can also be a range specified as 1000-1003
+  // Set dialog
+  // plate_acquisition can be comma separated integer the value can also be a range specified as 1000-1003
   let plateAcqs = parsePlateAcquisitionInput(acq_id);
   let acqIdString = plateAcqs.join(', ');
 
-  // Set dialog
-  message = "Do you want to run this analysis?<br><br>PlateAcqID: " + acqIdString + "<br><br>Pipeline: " + pipeline + ""
+  message = "PlateAcqID: " + acqIdString
+  message += "<br><br>Pipeline: " + pipeline + ""
+
   if (priority) {
     message += "<br><br>Priority: " + priority;
   }
- 
   if (well_filter) {
     message += "<br><br>Well-Filter: " + well_filter;
   }
@@ -1573,11 +1640,11 @@ function verifyRunAnalysisInputData(){
     message += "<br><br>Run-on-uppmax: True";
   }
 
-    // Check if the checkbox is checked
-    const runDardelCbx = document.getElementById('run-dardel-cbx');
-    if (runDardelCbx && runDardelCbx.checked) {
-      message += "<br><br>Run-on-dardel: True";
-    }
+  // Check if the checkbox is checked
+  const runDardelCbx = document.getElementById('run-dardel-cbx');
+  if (runDardelCbx && runDardelCbx.checked) {
+    message += "<br><br>Run-on-dardel: True";
+  }
 
   document.getElementById('runAnalysisModalBody').innerHTML = message;
   $('#run-analysis-modal').modal('show');

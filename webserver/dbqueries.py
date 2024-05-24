@@ -63,7 +63,8 @@ def select_sub_ids(analyses_id):
 def select_image_sub_analyses(id):
     query = ("SELECT * "
              "FROM image_sub_analyses_v1 "
-             "WHERE analyses_id = %s ")
+             "WHERE analyses_id = %s "
+             "ORDER by sub_id")
     params = (id,)
 
     return select_from_db(query, params)
