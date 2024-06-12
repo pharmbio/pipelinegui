@@ -219,23 +219,32 @@
       return rows;
     }
 
-    addLinkToErrorColumn(rows) {
-      console.log("Inside addLinkToErrorColumn");
+    addLogLinkColumn(rows) {
+      console.log("Adding Log Link Column");
+  
+      const cols = rows[0];
+      const idColIndex = cols.indexOf("id");
+  
+      // Add a header for the new column if it doesn't already exist
+      const logLinkColumnIndex = cols.indexOf("Log");
+      if (logLinkColumnIndex === -1) {
+          cols.splice(9, 0, "Log");  // You might need to adjust the index as needed
+      }
+  
+      // Process each data row
+      rows.slice(1).forEach(row => {
+          const id = row[idColIndex];
+          let cellContents = "";
 
-      const errorColIndex = rows[0].indexOf("error");
-      const idColIndex = rows[0].indexOf("id");
-      const baseUrl = "/error-log/";
-
-      rows.forEach((row, index) => {
-        if (index > 0) { // Skip header
-          const error = row[errorColIndex];
-          if (error && error.length > 0) {
-            const id = row[idColIndex];
-            const linkUrl = `${baseUrl}${encodeURIComponent(id)}`;
-            const newContents = `<a target='pipeline-error' href='${linkUrl}'>${error}</a>`;
-            row[errorColIndex] = newContents;
+          const linkUrl = `log/${id}`;
+          cellContents = `<a target='log' href='${linkUrl}'>Log</a>`;
+  
+          // Insert the new cell into the row
+          if (logLinkColumnIndex === -1) {
+              row.splice(9, 0, cellContents);
+          } else {
+              row[logLinkColumnIndex] = cellContents;
           }
-        }
       });
 
       return rows;
@@ -290,8 +299,8 @@ class ImageAnalysisTable extends DataTable {
         this.rows = this.addControlsColumn(this.rows);
         this.rows = this.addFileLinksColumn(this.rows);
         this.rows = this.addLinkToBarcodeColumn(this.rows);
+        this.rows = this.addLogLinkColumn(this.rows);
         this.rows = this.addSegmentationLinkColumn(this.rows);
-        this.rows = this.addLinkToErrorColumn(this.rows);
         this.rows = this.addGoToSubLinkColumn(this.rows);
         this.rows = this.truncateColumn(this.rows, "result", 100);
 
@@ -346,7 +355,7 @@ class ImageAnalysisTable extends DataTable {
     // Add a header for the new column if it doesn't already exist
     const segmentationLinkColumnIndex = cols.indexOf("Segmentation Links");
     if (segmentationLinkColumnIndex === -1) {
-        cols.splice(10, 0, "Segmentation Links");  // You might need to adjust the index as needed
+        cols.splice(11, 0, "Segmentation Links");  // You might need to adjust the index as needed
     }
 
     // Process each data row
@@ -363,7 +372,7 @@ class ImageAnalysisTable extends DataTable {
 
         // Insert the new cell into the row
         if (segmentationLinkColumnIndex === -1) {
-            row.splice(10, 0, cellContents);
+            row.splice(11, 0, cellContents);
         } else {
             row[segmentationLinkColumnIndex] = cellContents;
         }
@@ -429,27 +438,9 @@ class JobsTable extends DataTable {
   }
 
   applyTransformations(){
-    this.filterFailedJobsRows()
     this.addShowLogColumn()
   }
 
-  filterFailedJobsRows(){
-    let cols = this.rows[0];
-    cols.push("log")
-
-    // Remove rows that are not failed or error
-    let status_col_index = cols.indexOf("STATUS");
-    for (let nRow = this.rows.length -1; nRow > 0; nRow--) {
-      let status = this.addLinkToErrorColumn(this.rows[nRow][status_col_index]);
-      if(status == 'Failed' || status == 'Error'){
-        // Keep row
-      }
-      else{
-        // delete row
-        this.rows.splice(nRow, 1);
-      }
-    }
-  }
 
   addShowLogColumn(){
     // Add show log column
@@ -462,7 +453,7 @@ class JobsTable extends DataTable {
     }
   }
 
-  addLinkToErrorColumn(){
+  addLogColumn(){
     // Define which column is barcode column
     let cols = this.rows[0];
     let error_col_index = cols.indexOf("error");
@@ -804,10 +795,10 @@ function drawImageAnalysisTable(rows){
   }
 
   // Before drawing table, linkify barcode
-  rows = addLinkToBarcodeColumn(rows)
+  rows = addLinkToBarcodeColumn(rows);
 
-  // Before drawing table, linkify error column
-  rows = addLinkToErrorColumn(rows)
+  // Before drawing table, add log column
+  rows = addLogLinkColumn(rows);
 
   // Before drawing table add ("Controls")
   rows = addControlsColumn(rows)
@@ -1524,10 +1515,11 @@ function isCheckboxChecked(checkboxId) {
 }
 
 function verifyRunAnalysisInputData() {
-  const getTrimmedInputValue = getInputValue('plate_acq-input');
+  const acqId = getTrimmedInputValue('plate_acq-input');
   const wellFilter = getTrimmedInputValue('well_filter-input');
   const siteFilter = getTrimmedInputValue('site_filter-input');
   const priority = getTrimmedInputValue('priority-input');
+  const zPlane = getTrimmedInputValue('z_plane-input');
 
   if (isPriorityOneWithoutFilters(priority, wellFilter, siteFilter)) {
       alert("Priority 1 is reserved for short jobs where well and/or site filter is applied");
@@ -1555,8 +1547,8 @@ function verifyRunAnalysisInputData() {
   if (wellFilter) {
       message += `<br><br>Well-Filter: ${wellFilter}`;
   }
-  if (siteFilter) {
-      message += `<br><br>Site-Filter: ${siteFilter}`;
+  if (zPlane) {
+      message += `<br><br>Z-Plane: ${zPlane}`;
   }
 
   if (isCheckboxChecked('run-uppmax-cbx')) {

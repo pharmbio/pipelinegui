@@ -32,9 +32,6 @@ ul li a {
     background-color: #fff;
 }
 
-.plateTable tr {
-}
-
 
 .plateTable td {
     background-color: #fafafa;
@@ -74,6 +71,12 @@ ul li a {
     border: 1px solid rgba(0,0,0,0.1);
     overflow: hidden;
 }
+
+.highlight-error {
+    color: darkred;
+    font-weight: bold; /* Optional: makes the error text bold */
+}
+
 
 /*
 .image-blob {

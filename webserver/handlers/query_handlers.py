@@ -5,6 +5,7 @@ This is where most of the logic goes.
 import logging
 import os
 import json
+import re
 
 import tornado.web
 import datetime
@@ -236,6 +237,7 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
 
         well_filter = self.get_argument("well_filter-input")
         site_filter = self.get_argument("site_filter-input")
+        z_plane = self.get_argument("z_plane-input")
         priority = self.get_argument("priority-input")
 
         run_on_uppmax = ("on" == self.get_argument("run-uppmax-cbx", default="off"))
@@ -252,6 +254,7 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
                                                 cellprofiler_version,
                                                 well_filter,
                                                 site_filter,
+                                                z_plane,
                                                 priority,
                                                 run_on_uppmax,
                                                 run_on_dardel)
@@ -423,31 +426,33 @@ class ListAnalysisPipelinesQueryHandler(tornado.web.RequestHandler): #pylint: di
         self.finish({'result':result})
 
 
-class ErrorLogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
+class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
 
     def get(self, analysis_id):
         """Handles GET requests."""
 
-        logging.info(f"ErrorLogHandler, id: {analysis_id}")
+        logging.info(f"LogHandler, id: {analysis_id}")
 
-        error_msg = self._create_error_message(analysis_id)
+        log_msg = self._create_log_message(analysis_id)
 
-        error_msg = f"{error_msg}"
+        log_msg = f"{log_msg}"
 
-        self.render('error-log.html', error_msg=error_msg)
+        log_msg = self._highlight_error(log_msg)
 
-    def _create_error_message(self, analysis_id):
+        self.render('log.html', log_msg=log_msg)
+
+    def _create_log_message(self, analysis_id):
         analysis_info = dbqueries.select_image_analyses(analysis_id)
         sub_analyses = dbqueries.select_image_sub_analyses(analysis_id)
 
-        error_msg = ""
+        log_msg = ""
         for sub in sub_analyses:
-            msg = self._create_sub_error_message(sub)
-            error_msg += f"{msg}<br><br>"
+            msg = self._create_sub_log_message(sub)
+            log_msg += f"{msg}<br><br>"
 
-        return error_msg
+        return log_msg
 
-    def _create_sub_error_message(self, sub):
+    def _create_sub_log_message(self, sub):
         id = sub['sub_id']
 
         msg = []
@@ -537,6 +542,11 @@ class ErrorLogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-m
         except Exception as e:
             logging.error(f"An error occurred while reading the file {file_path}: {e}")
             return None
+        
+    def _highlight_error(self, log_msg):
+        # Use re.sub to find case insensitive "error" and replace with <span class="highlight-error"></span>
+        highlighted_msg = re.sub(r'(?i)error', r'<span class="highlight-error">\g<0></span>', log_msg)
+        return highlighted_msg
 
 IMAGE_EXTENSIONS = (".tif", ".tiff", ".png", ".jpg", ".jpeg", ".bmp")
 def get_image_files(base_dir, limit):

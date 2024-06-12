@@ -59,7 +59,7 @@ ROUTES = [
           (r'/api/analysis-pipelines/(?P<name>.+)*', query_handlers.ListAnalysisPipelinesQueryHandler),
           (r'/api/analysis/delete/(?P<id>.+)', query_handlers.DeleteAnalysisQueryHandler),
           (r'/api/analysis/update_meta', query_handlers.UpdateMetaQueryHandler),
-          (r'/error-log/(?P<analysis_id>.+)', query_handlers.ErrorLogHandler),
+          (r'/log/(?P<analysis_id>.+)', query_handlers.LogHandler),
           (r'/segmentation/(?P<analysis_id>.+)', query_handlers.SegmentationHandler),
           (r'/imgset', query_handlers.SaveImgsetQueryHandler),
           (r'/index.html', IndexTemplateHandler),

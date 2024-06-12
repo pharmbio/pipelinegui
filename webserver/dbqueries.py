@@ -189,7 +189,7 @@ def save_analysis_pipelines(name, data):
             conn.close()
 
 def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_version,
-                    well_filter, site_filter, priority_string, run_on_uppmax, run_on_dardel):
+                    well_filter, site_filter, z_plane, priority_string, run_on_uppmax, run_on_dardel):
 
     logging.debug("save_analysis_pipelines")
 
@@ -261,6 +261,10 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
         if site_filter.strip():
             for sub_analysis in sub_analyses:
                 sub_analysis['site_filter'] = site_filter.split(',')
+        # Add z plane info to sub_analysis
+        if z_plane.strip():
+            for sub_analysis in sub_analyses:
+                sub_analysis['z'] = z_plane
 
 
         depends_on_id = []
