@@ -449,7 +449,7 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
         for sub in sub_analyses:
             msg = self._create_sub_log_message(sub)
             log_msg += f"{msg}<br><br>"
-
+    
         return log_msg
 
     def _create_sub_log_message(self, sub):
@@ -466,6 +466,8 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
         msg.append(f"finish: {sub['finish']}")
         msg.append(f"error: {sub['error']}")
 
+        remote_log_path = self._get_remote_log_path(sub)
+        msg.append(f"remote_log: {remote_log_path}")
 
         pretty_meta = json.dumps(sub['meta'], indent=2)
         msg.append(f"meta:<pre>{pretty_meta}</pre>")
@@ -491,6 +493,28 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
             msg.append("###################################################################################################################<br>")
 
         return '<br>'.join(msg)
+
+    def _get_remote_log_path(self, sub):
+        job_id = self._get_job_id(sub['meta'])
+        if job_id:
+            slurm_log_path = f"cpp_uppmax/logs/{sub['analysis_id']}_{sub['sub_id']}-slurm.{job_id}.out"
+        remote_log_path = ""
+        if slurm_log_path:
+            remote_log_path = f"ssh uppmax cat {slurm_log_path}"
+
+        return remote_log_path
+
+    
+    def _get_job_id(self, meta):
+        # Check if the status is "submitted" and extract job_id
+        status = meta.get('status', '')
+        job_id = None
+        if 'submitted' in status:
+            job_id_pattern = re.compile(r'job_id=(\d+)')
+            match = job_id_pattern.search(status)
+            if match:
+                job_id = match.group(1)
+        return job_id
 
     def _get_error_job_paths(self, sub_out_path, limit=10):
         root = sub_out_path
