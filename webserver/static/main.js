@@ -221,16 +221,16 @@
 
     addLogLinkColumn(rows) {
       console.log("Adding Log Link Column");
-  
+
       const cols = rows[0];
       const idColIndex = cols.indexOf("id");
-  
+
       // Add a header for the new column if it doesn't already exist
       const logLinkColumnIndex = cols.indexOf("Log");
       if (logLinkColumnIndex === -1) {
           cols.splice(9, 0, "Log");  // You might need to adjust the index as needed
       }
-  
+
       // Process each data row
       rows.slice(1).forEach(row => {
           const id = row[idColIndex];
@@ -238,7 +238,7 @@
 
           const linkUrl = `log/${id}`;
           cellContents = `<a target='log' href='${linkUrl}'>Log</a>`;
-  
+
           // Insert the new cell into the row
           if (logLinkColumnIndex === -1) {
               row.splice(9, 0, cellContents);
@@ -1558,6 +1558,10 @@ function verifyRunAnalysisInputData() {
   if (isCheckboxChecked('run-dardel-cbx')) {
       message += `<br><br>Run-on-dardel: True`;
   }
+
+  if (isCheckboxChecked('run-hpcdev-cbx')) {
+    message += `<br><br>Run-on-hpcdev: True`;
+}
 
   document.getElementById('runAnalysisModalBody').innerHTML = message;
   $('#run-analysis-modal').modal('show');

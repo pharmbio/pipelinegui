@@ -189,7 +189,7 @@ def save_analysis_pipelines(name, data):
             conn.close()
 
 def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_version,
-                    well_filter, site_filter, z_plane, priority_string, run_on_uppmax, run_on_dardel):
+                    well_filter, site_filter, z_plane, priority_string, run_on_uppmax, run_on_dardel, run_on_hpcdev):
 
     logging.debug("save_analysis_pipelines")
 
@@ -222,6 +222,8 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
             analysis_meta['run_on_uppmax'] = run_on_uppmax
         if run_on_dardel:
             analysis_meta['run_on_dardel'] = run_on_dardel
+        if run_on_hpcdev:
+            analysis_meta['run_on_hpcdev'] = run_on_hpcdev
 
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "
@@ -243,6 +245,11 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
         if run_on_dardel:
             for sub_analysis in sub_analyses:
                 sub_analysis['run_on_dardel'] = run_on_dardel
+
+        # Add hpc_dev setting to sub_analysis
+        if run_on_hpcdev:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_hpcdev'] = run_on_hpcdev
 
         # Add priority version info to sub_analysis
         for sub_analysis in sub_analyses:

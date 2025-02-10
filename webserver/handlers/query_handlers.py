@@ -242,9 +242,11 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
 
         run_on_uppmax = ("on" == self.get_argument("run-uppmax-cbx", default="off"))
         run_on_dardel = ("on" == self.get_argument("run-dardel-cbx", default="off"))
+        run_on_hpcdev = ("on" == self.get_argument("run-hpcdev-cbx", default="off"))
 
         logging.info(f"run_on_uppmax: {run_on_uppmax}")
         logging.info(f"run_on_dardel: {run_on_dardel}")
+        logging.info(f"run_on_hpcdev: {run_on_hpcdev}")
         logging.info(f"priority: {priority}")
 
         plate_acqs_list = pipelineutils.parse_string_of_num_and_ranges(plate_acq_input)
@@ -257,7 +259,8 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
                                                 z_plane,
                                                 priority,
                                                 run_on_uppmax,
-                                                run_on_dardel)
+                                                run_on_dardel,
+                                                run_on_hpcdev)
             if results != "OK":
                 break
         logging.debug(results)
@@ -443,13 +446,20 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
 
     def _create_log_message(self, analysis_id):
         analysis_info = dbqueries.select_image_analyses(analysis_id)
+        # Ensure there is at least one result in the list
+        if isinstance(analysis_info, list) and len(analysis_info) > 0:
+            analysis_info = analysis_info[0]  # Access the first dictionary in the list
+        else:
+            raise ValueError(f"No analysis found for ID {analysis_id}")
         sub_analyses = dbqueries.select_image_sub_analyses(analysis_id)
 
-        log_msg = ""
+        log_msg = f"result_path: /cpp_work/results/{analysis_info['plate_barcode']}/{analysis_info['plate_acquisition_id']}/{analysis_info['id']}"
+        log_msg += "<br><br>"
+
         for sub in sub_analyses:
             msg = self._create_sub_log_message(sub)
             log_msg += f"{msg}<br><br>"
-    
+
         return log_msg
 
     def _create_sub_log_message(self, sub):
@@ -496,15 +506,16 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
 
     def _get_remote_log_path(self, sub):
         job_id = self._get_job_id(sub['meta'])
+        slurm_log_path = None
+        remote_log_path = ""
         if job_id:
             slurm_log_path = f"cpp_uppmax/logs/{sub['analysis_id']}_{sub['sub_id']}-slurm.{job_id}.out"
-        remote_log_path = ""
         if slurm_log_path:
             remote_log_path = f"ssh uppmax cat {slurm_log_path}"
 
         return remote_log_path
 
-    
+
     def _get_job_id(self, meta):
         # Check if the status is "submitted" and extract job_id
         status = meta.get('status', '')
@@ -566,7 +577,7 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
         except Exception as e:
             logging.error(f"An error occurred while reading the file {file_path}: {e}")
             return None
-        
+
     def _highlight_error(self, log_msg):
         # Use re.sub to find case insensitive "error" and replace with <span class="highlight-error"></span>
         highlighted_msg = re.sub(r'(?i)error', r'<span class="highlight-error">\g<0></span>', log_msg)
