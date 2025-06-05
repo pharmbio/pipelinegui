@@ -205,7 +205,7 @@
       console.log("Inside addLinkToBarcodeColumn");
 
       const barcodeColIndex = rows[0].indexOf("plate_barcode");
-      const baseUrl = "https://imagedb.k8s-prod.pharmb.io/?";
+      const baseUrl = "https://imagedb.k8s.pharmb.io/?";
 
       rows.forEach((row, index) => {
         if (index > 0) { // Skip header
@@ -859,7 +859,7 @@ function addLinkToBarcodeColumn(rows){
   // Define which column is barcode column
   let barcode_col_index = cols.indexOf("plate_barcode");
 
-  let base_url = "https://imagedb.k8s-prod.pharmb.io/?";
+  let base_url = "https://imagedb.k8s.pharmb.io/?";
 
   // Start from row 1 (0 is headers)
   for (let nRow = 1; nRow < rows.length; nRow++) {
@@ -888,7 +888,7 @@ function addGoToSubLinkColumn(rows){
   // Define which column is barcode column
   let id_col_index = cols.indexOf("id");
 
-  let base_url = "https://pipelinegui.k8s-prod.pharmb.io/index.html#";
+  let base_url = "https://pipelinegui.k8s.pharmb.io/index.html#";
 
   // Start from row 1 (0 is headers)
   for (let nRow = 1; nRow < rows.length; nRow++) {
@@ -966,7 +966,7 @@ function addNotebookLinkColumn(rows){
   // Define which column in result contains the result
   let result_col_index = cols.indexOf("result");
 
-  let base_url = "https://cpp-notebook-nogpu.k8s-prod.pharmb.io" + "/lab/tree" + "/cpp_work/";
+  let base_url = "https://cpp-notebook-nogpu.k8s.pharmb.io" + "/lab/tree" + "/cpp_work/";
 
   // Start from row 1 (0 is headers)
   for (let nRow = 1; nRow < rows.length; nRow++) {
