@@ -1,4 +1,5 @@
 import kubernetes
+from kubernetes.client.rest import ApiException
 import logging
 import os
 import yaml
@@ -42,12 +43,24 @@ def init_kubernetes_connection():
 
 
 def list_jobs():
+    namespace = get_namespace()
+    init_kubernetes_connection()
+    batch = kubernetes.client.BatchV1Api()
+
+    
+    
+def list_jobs():
     # list all jobs in namespace
     namespace = get_namespace()
 
     init_kubernetes_connection()
     k8s_batch_api = kubernetes.client.BatchV1Api()
-    job_list = k8s_batch_api.list_namespaced_job(namespace=namespace)
+
+    try:
+        job_list = k8s_batch_api.list_namespaced_job(namespace=namespace)
+    except ApiException as e:
+        # bubble up a structured error instead of HTML
+        raise RuntimeError(f"Kubernetes API error [{e.status}]: {e.reason}")
 
     # filter out all finished jobs
     rows = [["NAME", "ACTIVE", "SUCCEEDED", "FAILED", "CREATED", "STARTED", "FINISHED", "DURATION", "AGE", "STATUS"]]
