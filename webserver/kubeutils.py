@@ -41,19 +41,25 @@ def init_kubernetes_connection():
     # load the kube config
     kubernetes.config.load_kube_config('/kube/config')
 
-
-def list_jobs():
-    namespace = get_namespace()
-    init_kubernetes_connection()
-    batch = kubernetes.client.BatchV1Api()
-
+    if is_develop():
+        kubernetes.config.load_kube_config('/kube/config')
+        logging.info("Loaded external kubeconfig")
+    else:
+        kubernetes.config.load_incluster_config()
+        logging.info("Loaded in-cluster service account")
     
-    
+
 def list_jobs():
     # list all jobs in namespace
     namespace = get_namespace()
 
     init_kubernetes_connection()
+
+     # DEBUG: print out what host we're pointing at
+    host = kubernetes.client.Configuration().host
+    logging.info(f"K8s client talking to: {host}")
+    
+
     k8s_batch_api = kubernetes.client.BatchV1Api()
 
     try:
