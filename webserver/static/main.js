@@ -1422,6 +1422,48 @@ function getFirstSelectedPipeline() {
   return null; // Return null if no selection or only blank options are selected
 }
 
+// Auto-select CP version based on the selected pipeline meta
+function setCpVersionFromPipelineMeta(meta) {
+  if (!meta) return;
+  try {
+    const subs = Array.isArray(meta.sub_analyses) ? meta.sub_analyses : [];
+    let cpv = null;
+
+    // Prefer first sub-analysis with cp_version
+    for (const sub of subs) {
+      if (sub && typeof sub.cp_version === 'string' && sub.cp_version.trim() !== '') {
+        cpv = sub.cp_version.trim();
+        break;
+      }
+    }
+
+    // Fallback: cp_version at analysis_meta level (if present)
+    if (!cpv && meta.analysis_meta && typeof meta.analysis_meta.cp_version === 'string') {
+      cpv = meta.analysis_meta.cp_version.trim();
+    }
+
+    if (!cpv) return;
+
+    const select = document.getElementById('cellprofiler_version-select');
+    if (!select) return;
+
+    // If the value exists, select it; otherwise add it and select
+    let found = false;
+    for (let i = 0; i < select.options.length; i++) {
+      if (select.options[i].value === cpv) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      select.add(new Option(cpv, cpv));
+    }
+    select.value = cpv;
+  } catch (e) {
+    console.error('Failed to set cp_version from pipeline meta', e);
+  }
+}
+
 function redrawSelectedAnalysisPipeline() {
 
   let pipelineName = getFirstSelectedPipeline();
@@ -1437,6 +1479,9 @@ function redrawSelectedAnalysisPipeline() {
     let pipeline = getAnalysisPipelineFromName(pipelineName);
     console.log("pipeline", pipeline);
     pipeline_meta = JSON.stringify(pipeline['meta'], null, 2);
+
+    // Auto-select cp_version from pipeline meta
+    setCpVersionFromPipelineMeta(pipeline['meta']);
   }
 
   // Update textfield
