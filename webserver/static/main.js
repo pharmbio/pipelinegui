@@ -1600,8 +1600,12 @@ function verifyRunAnalysisInputData() {
       message += `<br><br>Run-on-uppmax: True`;
   }
 
-  if (isCheckboxChecked('run-dardel-cbx')) {
-      message += `<br><br>Run-on-dardel: True`;
+  if (isCheckboxChecked('run-pharmbio-cbx')) {
+      message += `<br><br>Run-on-pharmbio: True`;
+  }
+
+  if (isCheckboxChecked('run-pelle-cbx')) {
+      message += `<br><br>Run-on-pelle: True`;
   }
 
   if (isCheckboxChecked('run-hpcdev-cbx')) {
@@ -1682,10 +1686,10 @@ function verifyRunAnalysisInputData_old(){
   }
 
   // Check if the checkbox is checked
-  const runDardelCbx = document.getElementById('run-dardel-cbx');
-  if (runDardelCbx && runDardelCbx.checked) {
-    message += "<br><br>Run-on-dardel: True";
-  }
+  const runPelleCbx = document.getElementById('run-pelle-cbx');
+  if (runPelleCbx && runPelleCbx.checked) {
+    message += "<br><br>Run-on-pelle: True";
+}
 
   document.getElementById('runAnalysisModalBody').innerHTML = message;
   $('#run-analysis-modal').modal('show');

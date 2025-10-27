@@ -73,8 +73,13 @@
                     </div>
 
                     <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
-                      <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-dardel-cbx" id="run-dardel-cbx">
-                      <label class="form-check-label" style="margin-top:0.8rem;" for="run-dardel-cbx">Run on Dardel</label>
+                      <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-pharmbio-cbx" id="run-pharmbio-cbx">
+                      <label class="form-check-label" style="margin-top:0.8rem;" for="run-pharmbio-cbx">Run on Pharmbio</label>
+                    </div>
+
+                    <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
+                      <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-pelle-cbx" id="run-pelle-cbx">
+                      <label class="form-check-label" style="margin-top:0.8rem;" for="run-pelle-cbx">Run on Pelle</label>
                     </div>
 
                     <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
@@ -142,6 +147,7 @@
           <div class="input-group align-bottom">
             <!-- Run button-->
             <button type="button" id="run-button" class="btn btn-warning ml-2">Run</button>
+            <input type="hidden" name="run-location" id="run-location" value="uppmax">
           </div>
 
         </div>
@@ -234,6 +240,33 @@
               redrawSelectedAnalysisPipeline();
           });
       });
+
+      // Make run location checkboxes mutually exclusive
+      const runLocationIds = ['run-uppmax-cbx', 'run-pharmbio-cbx', 'run-pelle-cbx', 'run-hpcdev-cbx'];
+      const runLocationCbs = runLocationIds
+        .map(id => document.getElementById(id))
+        .filter(el => !!el);
+
+      const onRunLocationChange = (event) => {
+        if (event.target.checked) {
+          runLocationCbs.forEach(cb => {
+            if (cb !== event.target) cb.checked = false;
+          });
+          // Update hidden run-location field
+          const idToLocation = {
+            'run-uppmax-cbx': 'uppmax',
+            'run-pharmbio-cbx': 'pharmbio',
+            'run-pelle-cbx': 'pelle',
+            'run-hpcdev-cbx': 'hpc_dev'
+          };
+          const hidden = document.getElementById('run-location');
+          if (hidden && idToLocation[event.target.id]) {
+            hidden.value = idToLocation[event.target.id];
+          }
+        }
+      };
+
+      runLocationCbs.forEach(cb => cb.addEventListener('change', onRunLocationChange));
     });
 
   </script>

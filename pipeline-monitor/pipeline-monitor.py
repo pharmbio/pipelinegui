@@ -182,6 +182,18 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, additional_meta):
         if additional_meta:
             analysis_meta.update(additional_meta)
 
+        # Ensure run_location is present for downstream consumers
+        if 'run_location' not in analysis_meta:
+            if analysis_meta.get('run_on_pelle') or analysis_meta.get('run_on_dardel'):
+                analysis_meta['run_location'] = 'pelle'
+            elif analysis_meta.get('run_on_hpcdev'):
+                analysis_meta['run_location'] = 'hpc_dev'
+            elif analysis_meta.get('run_on_pharmbio'):
+                analysis_meta['run_location'] = 'pharmbio'
+            else:
+                # Default to uppmax if nothing specified
+                analysis_meta['run_location'] = 'uppmax'
+
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "
                  "VALUES (%s, %s, %s) RETURNING id")
@@ -202,6 +214,9 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, additional_meta):
             # append meta to sub_analyses
             if additional_meta:
                 sub_analysis.update(additional_meta)
+            # mirror run_location into each sub_analysis if missing
+            if 'run_location' not in sub_analysis and 'run_location' in analysis_meta:
+                sub_analysis['run_location'] = analysis_meta['run_location']
 
             insert_sub_cursor = conn.cursor() # piro says https://stackoverflow.com/users/10138/piro
             insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta, depends_on_sub_id) "

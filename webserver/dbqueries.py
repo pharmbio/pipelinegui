@@ -189,7 +189,7 @@ def save_analysis_pipelines(name, data):
             conn.close()
 
 def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_version,
-                    well_filter, site_filter, z_plane, priority_string, run_on_uppmax, run_on_dardel, run_on_hpcdev):
+                    well_filter, site_filter, z_plane="", priority_string="", run_on_uppmax=False, run_on_pharmbio=False, run_on_pelle=False, run_on_hpcdev=False, run_location=None):
 
     logging.debug("save_analysis_pipelines")
 
@@ -220,10 +220,14 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
         analysis_meta['priority'] = priority
         if run_on_uppmax:
             analysis_meta['run_on_uppmax'] = run_on_uppmax
-        if run_on_dardel:
-            analysis_meta['run_on_dardel'] = run_on_dardel
+        if run_on_pharmbio:
+            analysis_meta['run_on_pharmbio'] = run_on_pharmbio
+        if run_on_pelle:
+            analysis_meta['run_on_pelle'] = run_on_pelle
         if run_on_hpcdev:
             analysis_meta['run_on_hpcdev'] = run_on_hpcdev
+        if run_location:
+            analysis_meta['run_location'] = run_location
 
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "
@@ -241,15 +245,25 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
             for sub_analysis in sub_analyses:
                 sub_analysis['run_on_uppmax'] = run_on_uppmax
 
-        # Add dardel setting to sub_analysis
-        if run_on_dardel:
+        # Add pharmbio setting to sub_analysis
+        if run_on_pharmbio:
             for sub_analysis in sub_analyses:
-                sub_analysis['run_on_dardel'] = run_on_dardel
+                sub_analysis['run_on_pharmbio'] = run_on_pharmbio
+
+        # Add pelle setting to sub_analysis
+        if run_on_pelle:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_pelle'] = run_on_pelle
 
         # Add hpc_dev setting to sub_analysis
         if run_on_hpcdev:
             for sub_analysis in sub_analyses:
                 sub_analysis['run_on_hpcdev'] = run_on_hpcdev
+
+        # Add run_location to sub_analysis
+        if run_location:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_location'] = run_location
 
         # Add priority version info to sub_analysis
         for sub_analysis in sub_analyses:

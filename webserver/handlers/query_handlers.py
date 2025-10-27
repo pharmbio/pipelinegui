@@ -241,12 +241,16 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         priority = self.get_argument("priority-input")
 
         run_on_uppmax = ("on" == self.get_argument("run-uppmax-cbx", default="off"))
-        run_on_dardel = ("on" == self.get_argument("run-dardel-cbx", default="off"))
+        run_on_pharmbio = ("on" == self.get_argument("run-pharmbio-cbx", default="off"))
+        run_on_pelle = ("on" == self.get_argument("run-pelle-cbx", default="off"))
         run_on_hpcdev = ("on" == self.get_argument("run-hpcdev-cbx", default="off"))
+        run_location = self.get_argument("run-location", default="uppmax")
 
         logging.info(f"run_on_uppmax: {run_on_uppmax}")
-        logging.info(f"run_on_dardel: {run_on_dardel}")
+        logging.info(f"run_on_pelle: {run_on_pelle}")
+        logging.info(f"run_on_pharmbio: {run_on_pharmbio}")
         logging.info(f"run_on_hpcdev: {run_on_hpcdev}")
+        logging.info(f"run_location: {run_location}")
         logging.info(f"priority: {priority}")
 
         plate_acqs_list = pipelineutils.parse_string_of_num_and_ranges(plate_acq_input)
@@ -259,8 +263,10 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
                                                 z_plane,
                                                 priority,
                                                 run_on_uppmax,
-                                                run_on_dardel,
-                                                run_on_hpcdev)
+                                                run_on_pharmbio,
+                                                run_on_pelle,
+                                                run_on_hpcdev,
+                                                run_location)
             if results != "OK":
                 break
         logging.debug(results)
@@ -664,4 +670,3 @@ class SegmentationHandler(tornado.web.RequestHandler): #pylint: disable=abstract
 
         self.render('segmentation.html', analysis_id=analysis_id,
                                          images=images)
-
