@@ -12,6 +12,11 @@ def get_connection():
                                  database=pipelinegui_settings.DB_NAME,
                                  user=pipelinegui_settings.DB_USER, password=pipelinegui_settings.DB_PASS)
 
+def put_connection(conn):
+    # Simple compatibility shim so this module mirrors the monitor's API
+    if conn is not None:
+        conn.close()
+
 def list_plate_acquisitions():
 
     query = ("SELECT * "
@@ -96,6 +101,7 @@ def select_as_table_from_db(query, params=None):
         else:
             cursor.execute(query)
 
+        assert cursor is not None
         colnames = [desc[0] for desc in cursor.description]
 
         rows = cursor.fetchall()
@@ -115,7 +121,7 @@ def select_as_table_from_db(query, params=None):
         raise err
     finally:
         if conn is not None:
-            conn.close()
+            put_connection(conn)
 
 
 def list_analysis_pipelines():
@@ -189,7 +195,7 @@ def save_analysis_pipelines(name, data):
             conn.close()
 
 def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_version,
-                    well_filter, site_filter, z_plane="", priority_string="", run_on_uppmax=False, run_on_pharmbio=False, run_on_pelle=False, run_on_hpcdev=False, run_location=None):
+                    well_filter, site_filter, z_plane="", priority_string="", run_on_uppmax=False, run_on_pharmbio=False, run_on_pelle=False, run_on_hpcdev=False, run_location=None, submitted_by=None):
 
     logging.debug("save_analysis_pipelines")
 
@@ -201,8 +207,10 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
         select_query = ("SELECT name, meta FROM analysis_pipelines WHERE name=%s")
         logging.info("select_query" + str(select_query))
         cursor0 = conn.cursor()
+        assert cursor0 is not None
         cursor0.execute(select_query, (analysis_pipeline_name,))
         first_row = cursor0.fetchone()
+        assert first_row is not None
         pipeline_name = first_row[0]
         meta = first_row[1]
         cursor0.close()
@@ -218,6 +226,16 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
 
         # Add var to meta
         analysis_meta['priority'] = priority
+        # Also mirror commonly used fields into analysis_meta (not only sub_analyses)
+        analysis_meta['cp_version'] = cellprofiler_version
+        if submitted_by:
+            analysis_meta['submitted_by'] = submitted_by
+        if well_filter.strip():
+            analysis_meta['well_filter'] = well_filter.split(',')
+        if site_filter.strip():
+            analysis_meta['site_filter'] = site_filter.split(',')
+        if z_plane.strip():
+            analysis_meta['z'] = z_plane
         if run_on_uppmax:
             analysis_meta['run_on_uppmax'] = run_on_uppmax
         if run_on_pharmbio:

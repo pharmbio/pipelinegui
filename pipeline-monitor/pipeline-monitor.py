@@ -153,10 +153,11 @@ def add_plate_acq_id_to_image_analyses_automation_submitted(plate_acq_id):
         if conn is not None:
             put_connection(conn)
 
-def submit_analysis(plate_acquisition, analysis_pipeline_name, additional_meta):
-    '''This method is copied from pipelinegui/webserver/dbqueries.py and in future code should be common and shared'''
+def submit_analysis(plate_acquisition, analysis_pipeline_name, cellprofiler_version,
+                    well_filter, site_filter, z_plane="", priority_string="", run_on_uppmax=False, run_on_pharmbio=False, run_on_pelle=False, run_on_hpcdev=False, run_location=None, submitted_by=None):
+    """Identical logic to webserver/dbqueries.py:submit_analysis so the methods can be copied over each other."""
 
-    logging.debug("submit_analysis")
+    logging.debug("save_analysis_pipelines")
 
     conn = None
     try:
@@ -165,34 +166,44 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, additional_meta):
 
         select_query = ("SELECT name, meta FROM analysis_pipelines WHERE name=%s")
         logging.info("select_query" + str(select_query))
-        cursor = conn.cursor()
-        cursor.execute(select_query, (analysis_pipeline_name,))
-        first_row = cursor.fetchone()
+        cursor0 = conn.cursor()
+        cursor0.execute(select_query, (analysis_pipeline_name,))
+        first_row = cursor0.fetchone()
         pipeline_name = first_row[0]
         meta = first_row[1]
-        cursor.close()
+        cursor0.close()
 
         # get the sub-analysis and analysis_meta part of pipeline-meta
         sub_analyses = meta["sub_analyses"]
         analysis_meta = meta["analysis_meta"]
 
-        # add more meta
-        analysis_meta['submitted_by'] = 'pipeline_automation'
-        # Append more meta
-        if additional_meta:
-            analysis_meta.update(additional_meta)
+        if str(priority_string).strip().isnumeric():
+            priority = int(str(priority_string).strip())
+        else:
+            priority = None
 
-        # Ensure run_location is present for downstream consumers
-        if 'run_location' not in analysis_meta:
-            if analysis_meta.get('run_on_pelle') or analysis_meta.get('run_on_dardel'):
-                analysis_meta['run_location'] = 'pelle'
-            elif analysis_meta.get('run_on_hpcdev'):
-                analysis_meta['run_location'] = 'hpc_dev'
-            elif analysis_meta.get('run_on_pharmbio'):
-                analysis_meta['run_location'] = 'pharmbio'
-            else:
-                # Default to uppmax if nothing specified
-                analysis_meta['run_location'] = 'uppmax'
+        # Add var to meta
+        analysis_meta['priority'] = priority
+        # Also mirror commonly used fields into analysis_meta (not only sub_analyses)
+        analysis_meta['cp_version'] = cellprofiler_version
+        if submitted_by:
+            analysis_meta['submitted_by'] = submitted_by
+        if str(well_filter).strip():
+            analysis_meta['well_filter'] = (well_filter.split(',') if isinstance(well_filter, str) else well_filter)
+        if str(site_filter).strip():
+            analysis_meta['site_filter'] = (site_filter.split(',') if isinstance(site_filter, str) else site_filter)
+        if str(z_plane).strip():
+            analysis_meta['z'] = z_plane
+        if run_on_uppmax:
+            analysis_meta['run_on_uppmax'] = run_on_uppmax
+        if run_on_pharmbio:
+            analysis_meta['run_on_pharmbio'] = run_on_pharmbio
+        if run_on_pelle:
+            analysis_meta['run_on_pelle'] = run_on_pelle
+        if run_on_hpcdev:
+            analysis_meta['run_on_hpcdev'] = run_on_hpcdev
+        if run_location:
+            analysis_meta['run_location'] = run_location
 
         # Build query
         query = ("INSERT INTO image_analyses(plate_acquisition_id, pipeline_name, meta) "
@@ -201,27 +212,64 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name, additional_meta):
         logging.info("query" + str(query))
 
         cursor = conn.cursor()
-
-        logging.debug(cursor.mogrify(query, [plate_acquisition, pipeline_name, json.dumps(analysis_meta)]))
-
         cursor.execute(query, [plate_acquisition, pipeline_name, json.dumps(analysis_meta)])
         analysis_id = cursor.fetchone()[0]
         cursor.close()
 
+        # Add uppmax setting to sub_analysis
+        if run_on_uppmax:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_uppmax'] = run_on_uppmax
+
+        # Add pharmbio setting to sub_analysis
+        if run_on_pharmbio:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_pharmbio'] = run_on_pharmbio
+
+        # Add pelle setting to sub_analysis
+        if run_on_pelle:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_pelle'] = run_on_pelle
+
+        # Add hpc_dev setting to sub_analysis
+        if run_on_hpcdev:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_hpcdev'] = run_on_hpcdev
+
+        # Add run_location to sub_analysis
+        if run_location:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_location'] = run_location
+
+        # Add priority version info to sub_analysis
+        for sub_analysis in sub_analyses:
+            sub_analysis['priority'] = priority
+
+        # Add cellprofiler version info to sub_analysis
+        for sub_analysis in sub_analyses:
+            sub_analysis['cp_version'] = cellprofiler_version
+
+        # Add well filter info to sub_analysis
+        if str(well_filter).strip():
+            for sub_analysis in sub_analyses:
+                sub_analysis['well_filter'] = (well_filter.split(',') if isinstance(well_filter, str) else well_filter)
+
+        # Add site filter info to sub_analysis
+        if str(site_filter).strip():
+            for sub_analysis in sub_analyses:
+                sub_analysis['site_filter'] = (site_filter.split(',') if isinstance(site_filter, str) else site_filter)
+        # Add z plane info to sub_analysis
+        if str(z_plane).strip():
+            for sub_analysis in sub_analyses:
+                sub_analysis['z'] = z_plane
+
+
         depends_on_id = []
         for sub_analysis in sub_analyses:
-
-            # append meta to sub_analyses
-            if additional_meta:
-                sub_analysis.update(additional_meta)
-            # mirror run_location into each sub_analysis if missing
-            if 'run_location' not in sub_analysis and 'run_location' in analysis_meta:
-                sub_analysis['run_location'] = analysis_meta['run_location']
-
             insert_sub_cursor = conn.cursor() # piro says https://stackoverflow.com/users/10138/piro
-            insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta, depends_on_sub_id) "
-                                "VALUES (%s,%s,%s,%s) RETURNING sub_id")
-            insert_sub_cursor.execute(insert_sub_query, (analysis_id, plate_acquisition, json.dumps(sub_analysis),json.dumps(depends_on_id),))
+            insert_sub_query = ("INSERT INTO image_sub_analyses(analysis_id, plate_acquisition_id, meta, depends_on_sub_id, priority) "
+                                "VALUES (%s,%s,%s,%s,%s) RETURNING sub_id")
+            insert_sub_cursor.execute(insert_sub_query, (analysis_id, plate_acquisition, json.dumps(sub_analysis),json.dumps(depends_on_id),priority))
             returned_sub_id = insert_sub_cursor.fetchone()[0]
             depends_on_id = [returned_sub_id]
 
@@ -280,8 +328,46 @@ def polling_loop():
 
                 logging.debug(f"going to submit this analysis: {analysis}")
                 pipeline_name = analysis['pipeline_name']
-                additional_meta = analysis['metadata']
-                submit_analysis(plate_acq_id, pipeline_name, additional_meta)
+                additional_meta = analysis['metadata'] or {}
+
+                # Map automation metadata to the unified submit signature
+                cp_version = additional_meta.get('cp_version', '')
+                well_filter = additional_meta.get('well_filter', '')
+                if isinstance(well_filter, list):
+                    well_filter = ','.join(well_filter)
+                site_filter = additional_meta.get('site_filter', '')
+                if isinstance(site_filter, list):
+                    site_filter = ','.join(site_filter)
+                z_plane = str(additional_meta.get('z', '') or '')
+                priority_string = str(additional_meta.get('priority', '') or '')
+                run_on_uppmax = bool(additional_meta.get('run_on_uppmax', False))
+                run_on_pharmbio = bool(additional_meta.get('run_on_pharmbio', False))
+                run_on_pelle = bool(additional_meta.get('run_on_pelle', False) or additional_meta.get('run_on_dardel', False))
+                run_on_hpcdev = bool(additional_meta.get('run_on_hpcdev', False))
+                run_location = additional_meta.get('run_location')
+                if not run_location:
+                    if run_on_pelle:
+                        run_location = 'pelle'
+                    elif run_on_hpcdev:
+                        run_location = 'hpc_dev'
+                    elif run_on_pharmbio:
+                        run_location = 'pharmbio'
+                    else:
+                        run_location = 'uppmax'
+
+                submit_analysis(plate_acq_id,
+                                pipeline_name,
+                                cp_version,
+                                well_filter,
+                                site_filter,
+                                z_plane,
+                                priority_string,
+                                run_on_uppmax,
+                                run_on_pharmbio,
+                                run_on_pelle,
+                                run_on_hpcdev,
+                                run_location,
+                                submitted_by="pipeline_automation")
 
             # mark this plate_acq_id done
             add_plate_acq_id_to_image_analyses_automation_submitted(plate_acq_id)
