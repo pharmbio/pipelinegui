@@ -30,9 +30,13 @@
                 return response.json();
             })
             .then(json => {
-                this.rows = json['result'];
-                this.pre_transformations_hook()
-                this.applyTransformations(); // Apply transformations (can be overridden by subclasses)
+                const data = json && json['result'];
+                this.rows = Array.isArray(data) ? data : [];
+                this.pre_transformations_hook();
+                // Only apply transformations when there is at least a header row
+                if (this.rows.length > 0) {
+                  this.applyTransformations(); // Apply transformations (can be overridden by subclasses)
+                }
                 this.drawTable();
             })
             .catch(error => {
@@ -78,7 +82,7 @@
 
       // Optional filtering
       let filter = this.options.filterElementId ? this.getRowFilter() : null;
-      let filteredRows = [...this.rows];
+      let filteredRows = Array.isArray(this.rows) ? [...this.rows] : [];
       if (filter) {
         filteredRows = this.filterRows(filter, filteredRows);
       }
@@ -134,7 +138,8 @@
         let noDataRow = document.createElement('tr');
         let noDataCell = document.createElement('td');
         noDataCell.textContent = "No data available";
-        noDataCell.colSpan = filteredRows[0].length;
+        const colSpan = (this.rows && this.rows[0] && Array.isArray(this.rows[0])) ? this.rows[0].length : 1;
+        noDataCell.colSpan = colSpan;
         noDataRow.appendChild(noDataCell);
         table.appendChild(noDataRow);
       }
@@ -154,6 +159,7 @@
     }
 
     filterRows(text, rows){
+      if (!rows || rows.length === 0) return [];
       // Convert the search text to lower case outside the loop for efficiency
       let lowerCaseText = text.toLowerCase();
 
@@ -172,26 +178,35 @@
       return filtered;
     }
 
-    applyTransformations(){
+  applyTransformations(){
       // to be overridden in subclasses
-    }
+  }
 
     addFileLinksColumn(rows) {
+      if (!rows || rows.length === 0) return rows || [];
       let cols = rows[0];
+      if (!Array.isArray(cols)) return rows;
       let resultColIndex = cols.indexOf("result");
+      if (resultColIndex === -1) return rows; // nothing to do if no result column
+
+      // Insert header for links column
       cols.splice(resultColIndex + 1, 0, "file_list-links");
 
       for (let nRow = 1; nRow < rows.length; nRow++) {
         let result = rows[nRow][resultColIndex];
         let cellContents = "";
 
-        if (result != null) {
+        if (result && Array.isArray(result.file_list)) {
           for (let file_path of result.file_list) {
-            if (file_path.endsWith(".pdf") || file_path.endsWith(".csv")) {
+            if (typeof file_path === 'string' && (file_path.endsWith(".pdf") || file_path.endsWith(".csv"))) {
               let linkText = this.basename(file_path);
               let linkifiedFilePath = `<a href='/${file_path}'>${linkText}</a>`;
               cellContents += linkifiedFilePath + ", ";
             }
+          }
+          // Trim trailing comma and space
+          if (cellContents.endsWith(', ')) {
+            cellContents = cellContents.slice(0, -2);
           }
         }
 
@@ -203,8 +218,10 @@
 
     addLinkToBarcodeColumn(rows) {
       console.log("Inside addLinkToBarcodeColumn");
-
+      if (!rows || rows.length === 0) return rows || [];
+      if (!Array.isArray(rows[0])) return rows;
       const barcodeColIndex = rows[0].indexOf("plate_barcode");
+      if (barcodeColIndex === -1) return rows;
       const baseUrl = "https://imagedb.k8s.pharmb.io/?";
 
       rows.forEach((row, index) => {
@@ -221,9 +238,11 @@
 
     addLogLinkColumn(rows) {
       console.log("Adding Log Link Column");
-
+      if (!rows || rows.length === 0) return rows || [];
       const cols = rows[0];
+      if (!Array.isArray(cols)) return rows;
       const idColIndex = cols.indexOf("id");
+      if (idColIndex === -1) return rows;
 
       // Add a header for the new column if it doesn't already exist
       const logLinkColumnIndex = cols.indexOf("Log");
@@ -251,16 +270,19 @@
     }
 
     truncateColumn(rows, columnName, maxLength) {
+      if (!rows || rows.length === 0) return rows || [];
+      if (!Array.isArray(rows[0])) return rows;
       let columnIndex = rows[0].indexOf(columnName);
+      if (columnIndex === -1) return rows;
       for (let nRow = 1; nRow < rows.length; nRow++) {
         let content = rows[nRow][columnIndex];
         if (typeof content == 'object') {
           content = JSON.stringify(content);
         }
-        if (content === "null") {
+        if (content === "null" || content == null) {
           content = "";
         }
-        if (content != null && content.length > maxLength) {
+        if (content && content.length > maxLength) {
           content = content.substring(0, maxLength) + ".....";
         }
         rows[nRow][columnIndex] = content;
@@ -269,13 +291,16 @@
     }
 
     stringifyColumn(rows, columnName) {
+      if (!rows || rows.length === 0) return rows || [];
+      if (!Array.isArray(rows[0])) return rows;
       let columnIndex = rows[0].indexOf(columnName);
+      if (columnIndex === -1) return rows;
       for (let nRow = 1; nRow < rows.length; nRow++) {
         let content = rows[nRow][columnIndex];
         if (typeof content == 'object') {
           content = JSON.stringify(content);
         }
-        if (content === "null") {
+        if (content === "null" || content == null) {
           content = "";
         }
         rows[nRow][columnIndex] = content;
@@ -284,7 +309,8 @@
     }
 
     basename(str) {
-      let separator = "/";cbcs
+      if (typeof str !== 'string') return '';
+      let separator = "/";
       return str.substr(str.lastIndexOf(separator) + 1);
     }
 }
@@ -308,7 +334,9 @@ class ImageAnalysisTable extends DataTable {
   }
 
   addControlsColumn(rows) {
+    if (!rows || rows.length === 0) return rows || [];
     let cols = rows[0];
+    if (!Array.isArray(cols)) return rows;
     cols.splice(0, 0, "Controls");
     let idColIndex = cols.indexOf("id") - 1;
     let idColMeta = cols.indexOf("meta") - 1;
@@ -329,8 +357,10 @@ class ImageAnalysisTable extends DataTable {
 
   addGoToSubLinkColumn(rows) {
     console.log("Inside addGoToSubLinkColumn");
-
+    if (!rows || rows.length === 0) return rows || [];
+    if (!Array.isArray(rows[0])) return rows;
     const idColIndex = rows[0].indexOf("id");
+    if (idColIndex === -1) return rows;
     const baseUrl = "/index.html#";
 
     rows.forEach((row, index) => {
@@ -347,10 +377,12 @@ class ImageAnalysisTable extends DataTable {
 
   addSegmentationLinkColumn(rows) {
     console.log("Adding Segmentation Link Column");
-
+    if (!rows || rows.length === 0) return rows || [];
     const cols = rows[0];
+    if (!Array.isArray(cols)) return rows;
     const idColIndex = cols.indexOf("id");
     const metaColIndex = cols.indexOf("meta");
+    if (idColIndex === -1 || metaColIndex === -1) return rows;
 
     // Add a header for the new column if it doesn't already exist
     const segmentationLinkColumnIndex = cols.indexOf("Segmentation Links");
@@ -434,7 +466,10 @@ class JobsTable extends DataTable {
   }
 
   pre_transformations_hook(){
-    this.drawJobStats()
+    // Only draw stats if rows exist
+    if (Array.isArray(this.rows) && this.rows.length > 0) {
+      this.drawJobStats();
+    }
   }
 
   applyTransformations(){
@@ -444,8 +479,11 @@ class JobsTable extends DataTable {
 
   addShowLogColumn(){
     // Add show log column
+    if (!Array.isArray(this.rows) || this.rows.length === 0) return;
     let cols = this.rows[0];
+    if (!Array.isArray(cols)) return;
     let name_col_index = cols.indexOf("NAME");
+    if (name_col_index === -1) return;
     for (let nRow = 1; nRow < this.rows.length; nRow++) {
       let job_name = this.rows[nRow][name_col_index];
       let new_cell_content = "<a href='#' onclick='viewJobLog(\"" + job_name + "\");'>Show log</a>"
@@ -479,10 +517,13 @@ class JobsTable extends DataTable {
 
   drawJobStats() {
     // Calculate stats by looping rows
+    if (!Array.isArray(this.rows) || this.rows.length === 0) return;
     let cols = this.rows[0];
+    if (!Array.isArray(cols)) return;
     let active_col_index = cols.indexOf("ACTIVE");
     let succeeded_col_index = cols.indexOf("SUCCEEDED");
     let failed_col_index = cols.indexOf("FAILED");
+    if (active_col_index === -1 || succeeded_col_index === -1 || failed_col_index === -1) return;
 
     let active = 0;
     let succeeded = 0;
