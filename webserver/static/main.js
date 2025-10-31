@@ -1273,10 +1273,17 @@ function displayModalMessage(text) {
 }
 
 function showOKModal(message, timeoutMs = 1000) {
-  document.getElementById('alert-modal-body-div').innerHTML = message;
-  $("#alert-modal").modal();
-  //Autohide after xxx ms
-  setTimeout(function () { $("#alert-modal").modal('hide'); }, timeoutMs);
+  const bodyEl = document.getElementById('alert-modal-body-div');
+  const modalEl = document.getElementById('alert-modal');
+  if (bodyEl && modalEl && typeof $ === 'function') {
+    bodyEl.innerHTML = message;
+    $('#alert-modal').modal();
+    // Autohide after timeout
+    setTimeout(function () { $('#alert-modal').modal('hide'); }, timeoutMs);
+  } else {
+    // Fallback when modal is not present on the page
+    console.log('OK:', message);
+  }
 }
 
 var _loaded_analysisPipelines = null;
