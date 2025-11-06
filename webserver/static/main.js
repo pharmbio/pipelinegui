@@ -446,7 +446,6 @@ class ImageSubAnalysisTable extends DataTable {
     }
     return rows;
   }
-
 }
 
 class PlateAcqTable extends DataTable {

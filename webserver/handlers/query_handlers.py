@@ -17,6 +17,7 @@ import fileutils
 import pipelineutils
 from database import Database
 import cellprofiler_utils
+import hpc_utils
 
 def myserialize(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -202,6 +203,50 @@ class DeleteAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=a
         """Handles GET requests.
         """
         logging.info("id: " + str(id))
+
+        # Attempt to cancel HPC jobs on Pelle by extracting job ids from status/meta
+        scancel_info = None
+        try:
+            rows = dbqueries.select_image_analyses(id)
+            job_ids = []
+            if rows and isinstance(rows, list):
+                row0 = rows[0]
+                status_obj = row0.get('status') if isinstance(row0, dict) else None
+                meta_obj = row0.get('meta') if isinstance(row0, dict) else None
+
+                # Helper: parse job ids from a dict of strings
+                def parse_job_ids(dct):
+                    if not isinstance(dct, dict):
+                        return
+                    for k, v in dct.items():
+                        # pattern 1: jobid_<subid>: "169237"
+                        if isinstance(k, str) and k.startswith('jobid_'):
+                            if v is not None:
+                                job_ids.append(str(v))
+                        # pattern 2: status_<subid>: "submitted, job_id=57167333"
+                        if isinstance(k, str) and k.startswith('status_') and isinstance(v, str):
+                            m = re.search(r"job_id=(\d+)", v)
+                            if m:
+                                job_ids.append(m.group(1))
+
+                parse_job_ids(status_obj)
+                parse_job_ids(meta_obj)
+
+            # De-duplicate while preserving order
+            if job_ids:
+                seen = set()
+                uniq = []
+                for j in job_ids:
+                    if j not in seen:
+                        uniq.append(j)
+                        seen.add(j)
+                try:
+                    scancel_info = hpc_utils.scancel_job_ids_on_pelle(uniq)
+                except Exception:
+                    logging.exception("Failed to scancel Pelle job ids for analysis id=%s", id)
+        except Exception:
+            logging.exception("Unable to inspect analysis status/meta before deletion; id=%s", id)
+
         result1 = dbqueries.delete_analysis(id)
         result2 = str(kubeutils.delete_analysis_jobs(id))
         #result3 = str(fileutils.delete_analysis_jobs(id))
@@ -209,6 +254,8 @@ class DeleteAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=a
         result = []
         result.append(result1)
         result.append(result2)
+        if scancel_info is not None:
+            result.append({"pelle_scancel": scancel_info})
 
         logging.debug(result)
         self.finish({'result':result})
@@ -483,10 +530,20 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
         msg.append(f"error: {sub['error']}")
 
         remote_log_path = self._get_remote_log_path(sub)
-        msg.append(f"remote_log: {remote_log_path}")
+        if remote_log_path:
+            msg.append(f"remote_log: {remote_log_path}")
 
         pretty_meta = json.dumps(sub['meta'], indent=2)
         msg.append(f"meta:<pre>{pretty_meta}</pre>")
+
+        # If an "error" file exists directly in the output directory, display its contents
+        try:
+            top_error_file = os.path.join(out_path, "error")
+            if os.path.isfile(top_error_file):
+                top_error_content = self._read_file_to_string(top_error_file)
+                msg.append(f"error file content:<pre>{top_error_content}</pre>")
+        except Exception as e:
+            logging.error(f"Failed reading top-level error file in {out_path}: {e}")
 
         error_paths = self._get_error_job_paths(out_path, 10)
 
