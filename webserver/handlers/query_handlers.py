@@ -528,10 +528,9 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
         msg.append(f"start: {sub['start']}")
         msg.append(f"finish: {sub['finish']}")
         msg.append(f"error: {sub['error']}")
-
+        msg.append(f"runner_log: {out_path}runner.log")
         remote_log_path = self._get_remote_log_path(sub)
-        if remote_log_path:
-            msg.append(f"remote_log: {remote_log_path}")
+        msg.append(f"remote_log: {remote_log_path}")
 
         pretty_meta = json.dumps(sub['meta'], indent=2)
         msg.append(f"meta:<pre>{pretty_meta}</pre>")
@@ -566,29 +565,34 @@ class LogHandler(tornado.web.RequestHandler):  # pylint: disable=abstract-method
             msg.append("###################################################################################################################<br>")
 
         return '<br>'.join(msg)
-
+    
     def _get_remote_log_path(self, sub):
-        job_id = self._get_job_id(sub['meta'])
+        job_id = self._get_job_id(sub['status'])
         slurm_log_path = None
         remote_log_path = ""
         if job_id:
-            slurm_log_path = f"cpp_uppmax/logs/{sub['analysis_id']}_{sub['sub_id']}-slurm.{job_id}.out"
+            slurm_log_path = f"~/cppipeline2/uppmax/logs/{sub['sub_id']}-*.out"
         if slurm_log_path:
-            remote_log_path = f"ssh uppmax cat {slurm_log_path}"
-
+            remote_log_path = f"ssh uppmax cat '{slurm_log_path}'"
         return remote_log_path
 
+    def _get_job_id(self, status_meta):
+        """Extract jobid from the provided status JSON
+        Expected shape: {"jobid":"178100", ...} 
+        """
+        # If a JSON string is provided, parse it
+        if isinstance(status_meta, str):
+            try:
+                status_meta = json.loads(status_meta)
+            except Exception:
+                return None
 
-    def _get_job_id(self, meta):
-        # Check if the status is "submitted" and extract job_id
-        status = meta.get('status', '')
-        job_id = None
-        if 'submitted' in status:
-            job_id_pattern = re.compile(r'job_id=(\d+)')
-            match = job_id_pattern.search(status)
-            if match:
-                job_id = match.group(1)
-        return job_id
+        # If it's a dict, return the 'jobid' field
+        if isinstance(status_meta, dict):
+            jobid = status_meta.get('jobid')
+            return str(jobid) if jobid is not None else None
+
+        return None
 
     def _get_error_job_paths(self, sub_out_path, limit=10):
         root = sub_out_path
