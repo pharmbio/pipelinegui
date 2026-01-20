@@ -31,24 +31,20 @@ def is_debug():
 
 def get_namespace():
 
-    if is_develop():
-        namespace = "cpp" # "cpp-debug"
-    else:
-        namespace = "cpp"
-
-    return namespace
+    # Currently we always use the same namespace, regardless of environment.
+    # This function is kept for possible future environment-based switching.
+    return "cpp"
 
 
 def init_kubernetes_connection():
-    # load the kube config
-    config.load_kube_config('/kube/config')
+    """
+    Initialize Kubernetes client using the in-cluster service account.
 
-    if is_develop():
-        config.load_kube_config('/kube/config')
-        logging.info("Loaded external kubeconfig")
-    else:
-        config.load_incluster_config()
-        logging.info("Loaded in-cluster service account")
+    This assumes the application is running inside a Kubernetes cluster with
+    a ServiceAccount that has the required RBAC permissions.
+    """
+    config.load_incluster_config()
+    logging.info("Loaded in-cluster service account configuration")
     
 
 def list_jobs():
@@ -200,6 +196,5 @@ def delete_analysis_jobs(analysis_id):
     logging.debug("delete_analysis_jobs, response: " + str(response))
 
     return response
-
 
 
