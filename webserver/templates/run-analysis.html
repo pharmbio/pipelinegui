@@ -142,7 +142,7 @@
           <div class="input-group align-bottom">
             <!-- Run button-->
             <button type="button" id="run-button" class="btn btn-warning ml-2">Run</button>
-            <input type="hidden" name="run-location" id="run-location" value="uppmax">
+            <input type="hidden" name="run-location" id="run-location" value="pelle">
           </div>
 
         </div>
@@ -262,6 +262,12 @@
       };
 
       runLocationCbs.forEach(cb => cb.addEventListener('change', onRunLocationChange));
+
+      // Initialize hidden run-location based on the checkbox that is checked by default
+      const initiallyChecked = runLocationCbs.find(cb => cb.checked);
+      if (initiallyChecked) {
+        onRunLocationChange({ target: initiallyChecked });
+      }
     });
 
   </script>
