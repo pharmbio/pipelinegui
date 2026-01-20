@@ -10,8 +10,8 @@ import tornado.web
 from tornado import autoreload, ioloop, log
 
 import handlers.query_handlers as query_handlers
-
 from database import Database
+import settings as pipelinegui_settings
 
 SETTINGS = {
     'debug': True,
