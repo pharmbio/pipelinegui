@@ -1,4 +1,6 @@
+
 import kubernetes
+from kubernetes import config, client
 from kubernetes.client.rest import ApiException
 import logging
 import os
@@ -39,13 +41,13 @@ def get_namespace():
 
 def init_kubernetes_connection():
     # load the kube config
-    kubernetes.config.load_kube_config('/kube/config')
+    config.load_kube_config('/kube/config')
 
     if is_develop():
-        kubernetes.config.load_kube_config('/kube/config')
+        config.load_kube_config('/kube/config')
         logging.info("Loaded external kubeconfig")
     else:
-        kubernetes.config.load_incluster_config()
+        config.load_incluster_config()
         logging.info("Loaded in-cluster service account")
     
 
@@ -56,11 +58,11 @@ def list_jobs():
     init_kubernetes_connection()
 
      # DEBUG: print out what host we're pointing at
-    host = kubernetes.client.Configuration().host
+    host = client.Configuration().host
     logging.info(f"K8s client talking to: {host}")
     
 
-    k8s_batch_api = kubernetes.client.BatchV1Api()
+    k8s_batch_api = client.BatchV1Api()
 
     try:
         job_list = k8s_batch_api.list_namespaced_job(namespace=namespace)
@@ -170,7 +172,7 @@ def get_job_log(job_name):
     namespace = get_namespace()
 
     init_kubernetes_connection()
-    k8s_core_api = kubernetes.client.CoreV1Api()
+    k8s_core_api = client.CoreV1Api()
 
     label_selector = f"job-name={job_name}"
     pods_list = k8s_core_api.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
@@ -190,7 +192,7 @@ def delete_analysis_jobs(analysis_id):
     namespace = get_namespace()
 
     init_kubernetes_connection()
-    k8s_batch_api = kubernetes.client.BatchV1Api()
+    k8s_batch_api = client.BatchV1Api()
 
     label_selector = f"analysis_id={analysis_id}"
     response = k8s_batch_api.delete_collection_namespaced_job(namespace=namespace, label_selector=label_selector, propagation_policy='Foreground')

@@ -1643,10 +1643,6 @@ function verifyRunAnalysisInputData() {
       message += `<br><br>Z-Plane: ${zPlane}`;
   }
 
-  if (isCheckboxChecked('run-uppmax-cbx')) {
-      message += `<br><br>Run-on-uppmax: True`;
-  }
-
   if (isCheckboxChecked('run-pharmbio-cbx')) {
       message += `<br><br>Run-on-pharmbio: True`;
   }
@@ -1724,12 +1720,6 @@ function verifyRunAnalysisInputData_old(){
   }
   if (site_filter) {
     message += "<br><br>Site-Filter: " + site_filter;
-  }
-
-  // Check if the checkbox is checked
-  const runUppmaxCbx = document.getElementById('run-uppmax-cbx');
-  if (runUppmaxCbx && runUppmaxCbx.checked) {
-    message += "<br><br>Run-on-uppmax: True";
   }
 
   // Check if the checkbox is checked

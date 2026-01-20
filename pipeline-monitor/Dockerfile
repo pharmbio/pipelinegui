@@ -33,11 +33,13 @@ RUN apt-get update && apt-get install -y \
         libgl1 \
         libglib2.0-0
 
-# Install with pip before copy all files, otherwise docker needs to build
-# this layer allways after file changes in app-dir
+# Install with pip before copying app files so this
+# layer can be cached when only source changes.
 COPY requirements.txt /app/
 RUN pip3 install -r /app/requirements.txt
 
-COPY . /app
+# Copy only the relevant application files into the image.
+# Assumes the build context is the pipeline-monitor directory.
+COPY *.py settings*.json /app/
 
 WORKDIR /app

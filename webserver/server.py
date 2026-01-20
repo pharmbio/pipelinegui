@@ -7,10 +7,10 @@ import os
 import logging
 import tornado
 import tornado.web
+from tornado import autoreload, ioloop, log
 
 import handlers.query_handlers as query_handlers
 
-import settings as pipelinegui_settings
 from database import Database
 
 SETTINGS = {
@@ -68,9 +68,9 @@ ROUTES = [
 
 if __name__ == '__main__':
 
-    tornado.log.enable_pretty_logging()
+    log.enable_pretty_logging()
 
-    tornado.autoreload.start()
+    autoreload.start()
 
     logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                         datefmt='%H:%M:%S',
@@ -91,6 +91,6 @@ if __name__ == '__main__':
     APP = tornado.web.Application(ROUTES, **SETTINGS)
     APP.listen(8080)
     try:
-        tornado.ioloop.IOLoop.current().start()
+        ioloop.IOLoop.current().start()
     except KeyboardInterrupt:
         logging.info("Shutting down")

@@ -68,18 +68,13 @@
                     </select>
 
                     <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
-                      <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-uppmax-cbx" id="run-uppmax-cbx" checked>
-                      <label class="form-check-label" style="margin-top:0.8rem;" for="run-uppmax-cbx">Run on Uppmax</label>
+                      <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-pelle-cbx" id="run-pelle-cbx">
+                      <label class="form-check-label" style="margin-top:0.8rem;" for="run-pelle-cbx">Run on Uppmax(Pelle)</label>
                     </div>
 
                     <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
                       <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-pharmbio-cbx" id="run-pharmbio-cbx">
                       <label class="form-check-label" style="margin-top:0.8rem;" for="run-pharmbio-cbx">Run on Pharmbio</label>
-                    </div>
-
-                    <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
-                      <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-pelle-cbx" id="run-pelle-cbx">
-                      <label class="form-check-label" style="margin-top:0.8rem;" for="run-pelle-cbx">Run on Pelle</label>
                     </div>
 
                     <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
@@ -242,7 +237,7 @@
       });
 
       // Make run location checkboxes mutually exclusive
-      const runLocationIds = ['run-uppmax-cbx', 'run-pharmbio-cbx', 'run-pelle-cbx', 'run-hpcdev-cbx'];
+      const runLocationIds = ['run-pharmbio-cbx', 'run-pelle-cbx', 'run-hpcdev-cbx'];
       const runLocationCbs = runLocationIds
         .map(id => document.getElementById(id))
         .filter(el => !!el);
