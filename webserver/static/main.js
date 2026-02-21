@@ -1647,6 +1647,10 @@ function verifyRunAnalysisInputData() {
       message += `<br><br>Run-on-pharmbio: True`;
   }
 
+  if (isCheckboxChecked('run-haswell-cbx')) {
+      message += `<br><br>Run-on-haswell: True`;
+  }
+
   if (isCheckboxChecked('run-pelle-cbx')) {
       message += `<br><br>Run-on-pelle: True`;
   }

@@ -78,6 +78,11 @@
                     </div>
 
                     <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
+                      <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-haswell-cbx" id="run-haswell-cbx">
+                      <label class="form-check-label" style="margin-top:0.8rem;margin-left:0.3rem;" for="run-haswell-cbx">Run on Haswell</label>
+                    </div>
+
+                    <div class="form-group form-check" style="margin-bottom: 0px;margin-left: 5px">
                       <input type="checkbox" class="form-check-input" style="margin-top: 1.0rem;" name="run-hpcdev-cbx" id="run-hpcdev-cbx">
                       <label class="form-check-label" style="margin-top:0.8rem;margin-left:0.3rem;" for="run-hpcdev-cbx">Run on Hpc-dev</label>
                     </div>
@@ -237,7 +242,7 @@
       });
 
       // Make run location checkboxes mutually exclusive
-      const runLocationIds = ['run-pharmbio-cbx', 'run-pelle-cbx', 'run-hpcdev-cbx'];
+      const runLocationIds = ['run-pharmbio-cbx', 'run-haswell-cbx', 'run-pelle-cbx', 'run-hpcdev-cbx'];
       const runLocationCbs = runLocationIds
         .map(id => document.getElementById(id))
         .filter(el => !!el);
@@ -251,6 +256,7 @@
           const idToLocation = {
             'run-uppmax-cbx': 'uppmax',
             'run-pharmbio-cbx': 'pharmbio',
+            'run-haswell-cbx': 'haswell',
             'run-pelle-cbx': 'pelle',
             'run-hpcdev-cbx': 'hpc_dev'
           };

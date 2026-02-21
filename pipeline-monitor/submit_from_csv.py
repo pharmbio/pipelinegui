@@ -10,7 +10,7 @@ The CSV file must have a header row with at least:
 
 Optional columns (will default if missing/empty):
     well_filter,site_filter,z_plane,priority,
-    run_on_uppmax,run_on_pharmbio,run_on_pelle,run_on_hpcdev,
+    run_on_uppmax,run_on_pharmbio,run_on_haswell,run_on_pelle,run_on_hpcdev,
     run_location,submitted_by
 
 Every xx minutes the next row is submitted via submit_analysis.
@@ -71,6 +71,7 @@ def submit_jobs(jobs: List[Dict[str, Any]], interval_seconds: int = INTERVAL_SEC
         priority_string = (job.get("priority") or "").strip()
         run_on_uppmax = _to_bool(job.get("run_on_uppmax"))
         run_on_pharmbio = _to_bool(job.get("run_on_pharmbio"))
+        run_on_haswell = _to_bool(job.get("run_on_haswell"))
         run_on_pelle = _to_bool(job.get("run_on_pelle"))
         run_on_hpcdev = _to_bool(job.get("run_on_hpcdev"))
         run_location = (job.get("run_location") or "").strip() or None
@@ -79,7 +80,7 @@ def submit_jobs(jobs: List[Dict[str, Any]], interval_seconds: int = INTERVAL_SEC
         logging.info(
             "Calling submit_analysis(plate_acquisition=%s, pipeline_name=%s, cellprofiler_version=%s, "
             "well_filter=%s, site_filter=%s, z_plane=%s, priority=%s, run_on_uppmax=%s, "
-            "run_on_pharmbio=%s, run_on_pelle=%s, run_on_hpcdev=%s, run_location=%s, submitted_by=%s)",
+            "run_on_pharmbio=%s, run_on_haswell=%s, run_on_pelle=%s, run_on_hpcdev=%s, run_location=%s, submitted_by=%s)",
             plate_acq,
             pipeline_name,
             cp_version,
@@ -89,6 +90,7 @@ def submit_jobs(jobs: List[Dict[str, Any]], interval_seconds: int = INTERVAL_SEC
             priority_string,
             run_on_uppmax,
             run_on_pharmbio,
+            run_on_haswell,
             run_on_pelle,
             run_on_hpcdev,
             run_location,
@@ -105,6 +107,7 @@ def submit_jobs(jobs: List[Dict[str, Any]], interval_seconds: int = INTERVAL_SEC
             priority_string,
             run_on_uppmax,
             run_on_pharmbio,
+            run_on_haswell,
             run_on_pelle,
             run_on_hpcdev,
             run_location,

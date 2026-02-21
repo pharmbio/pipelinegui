@@ -195,7 +195,7 @@ def save_analysis_pipelines(name, data):
             conn.close()
 
 def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_version,
-                    well_filter, site_filter, z_plane="", priority_string="", run_on_uppmax=False, run_on_pharmbio=False, run_on_pelle=False, run_on_hpcdev=False, run_location=None, submitted_by=None):
+                    well_filter, site_filter, z_plane="", priority_string="", run_on_uppmax=False, run_on_pharmbio=False, run_on_haswell=False, run_on_pelle=False, run_on_hpcdev=False, run_location=None, submitted_by=None):
 
     logging.debug("save_analysis_pipelines")
 
@@ -240,6 +240,8 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
             analysis_meta['run_on_uppmax'] = run_on_uppmax
         if run_on_pharmbio:
             analysis_meta['run_on_pharmbio'] = run_on_pharmbio
+        if run_on_haswell:
+            analysis_meta['run_on_haswell'] = run_on_haswell
         if run_on_pelle:
             analysis_meta['run_on_pelle'] = run_on_pelle
         if run_on_hpcdev:
@@ -267,6 +269,11 @@ def submit_analysis(plate_acquisition, analysis_pipeline_name,cellprofiler_versi
         if run_on_pharmbio:
             for sub_analysis in sub_analyses:
                 sub_analysis['run_on_pharmbio'] = run_on_pharmbio
+
+        # Add haswell setting to sub_analysis
+        if run_on_haswell:
+            for sub_analysis in sub_analyses:
+                sub_analysis['run_on_haswell'] = run_on_haswell
 
         # Add pelle setting to sub_analysis
         if run_on_pelle:

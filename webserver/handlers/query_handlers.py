@@ -289,6 +289,7 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
 
         run_on_uppmax = ("on" == self.get_argument("run-uppmax-cbx", default="off"))
         run_on_pharmbio = ("on" == self.get_argument("run-pharmbio-cbx", default="off"))
+        run_on_haswell = ("on" == self.get_argument("run-haswell-cbx", default="off"))
         run_on_pelle = ("on" == self.get_argument("run-pelle-cbx", default="off"))
         run_on_hpcdev = ("on" == self.get_argument("run-hpcdev-cbx", default="off"))
         run_location = self.get_argument("run-location", default="uppmax")
@@ -296,6 +297,7 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
         logging.info(f"run_on_uppmax: {run_on_uppmax}")
         logging.info(f"run_on_pelle: {run_on_pelle}")
         logging.info(f"run_on_pharmbio: {run_on_pharmbio}")
+        logging.info(f"run_on_haswell: {run_on_haswell}")
         logging.info(f"run_on_hpcdev: {run_on_hpcdev}")
         logging.info(f"run_location: {run_location}")
         logging.info(f"priority: {priority}")
@@ -311,6 +313,7 @@ class RunAnalysisQueryHandler(tornado.web.RequestHandler): #pylint: disable=abst
                                                 priority,
                                                 run_on_uppmax,
                                                 run_on_pharmbio,
+                                                run_on_haswell,
                                                 run_on_pelle,
                                                 run_on_hpcdev,
                                                 run_location)
